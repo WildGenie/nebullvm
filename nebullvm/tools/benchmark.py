@@ -230,11 +230,11 @@ def benchmark(
         n_runs (int, optional): Number of iterations performed to benchmark
             the model.
     """
-    if not isinstance(model, BaseInferenceLearner):
-        device = check_device(device)
-    else:
-        device = model.device
-
+    device = (
+        model.device
+        if isinstance(model, BaseInferenceLearner)
+        else check_device(device)
+    )
     logger.info(f"Running benchmark on {device.type.name}")
 
     dl_framework = _get_dl_framework(model)
@@ -258,12 +258,7 @@ def benchmark(
             )
 
     if not isinstance(input_data, DataManager):
-        if check_input_data(input_data):
-            if is_data_subscriptable(input_data):
-                input_data = DataManager(input_data)
-            else:
-                input_data = DataManager.from_iterable(input_data)
-        else:
+        if not check_input_data(input_data):
             raise ValueError(
                 "The provided data does not match the expected "
                 "format.\n"
@@ -276,6 +271,10 @@ def benchmark(
                 "depending on the framework used.\n"
             )
 
+        if is_data_subscriptable(input_data):
+            input_data = DataManager(input_data)
+        else:
+            input_data = DataManager.from_iterable(input_data)
     if random:
         model_params = extract_info_from_data(
             model, input_data, dl_framework, None, device

@@ -117,6 +117,5 @@ def select_compilers_from_hardware_tensorflow():
 
     compilers = []
     if tensorflow_is_available():
-        compilers.append(ModelCompiler.XLA)
-        compilers.append(ModelCompiler.TFLITE)
+        compilers.extend((ModelCompiler.XLA, ModelCompiler.TFLITE))
     return compilers

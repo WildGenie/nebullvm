@@ -22,7 +22,7 @@ def generate_model_id(model_name: str):
 
 
 def get_model_name(model: Any):
-    if isinstance(model, str) or isinstance(model, Path):
+    if isinstance(model, (str, Path)):
         return str(model)
     else:
         return model.__class__.__name__
@@ -30,13 +30,11 @@ def get_model_name(model: Any):
 
 def _get_gpu_name():
     if torch_is_available():
-        name = torch_get_device_name()
+        return torch_get_device_name()
     elif tensorflow_is_available():
-        name = tensorflow_get_gpu_name()
+        return tensorflow_get_gpu_name()
     else:
-        name = "Unknown GPU"
-
-    return name
+        return "Unknown GPU"
 
 
 def get_hw_info(device: Device):
@@ -51,7 +49,7 @@ def get_hw_info(device: Device):
 
 
 def read_model_size(model: Any):
-    if isinstance(model, str) or isinstance(model, Path):
+    if isinstance(model, (str, Path)):
         size = os.stat(str(model)).st_size
     elif isinstance(model, Module):
         size = sum(

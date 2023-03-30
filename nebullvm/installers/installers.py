@@ -28,10 +28,7 @@ from nebullvm.tools.utils import (
 
 def get_cpu_arch():
     arch = cpuinfo.get_cpu_info()["arch"].lower()
-    if "x86" in arch:
-        return "x86"
-    else:
-        return "arm"
+    return "x86" if "x86" in arch else "arm"
 
 
 def _get_os():
@@ -85,10 +82,7 @@ def install_tvm(
 
 def install_bladedisc():
     """Helper function for installing BladeDisc."""
-    has_cuda = False
-    if gpu_is_available():
-        has_cuda = True
-
+    has_cuda = bool(gpu_is_available())
     path = Path(__file__).parent
     installation_file = str(path / "install_bladedisc.sh")
     subprocess.Popen(["bash", installation_file, str(has_cuda).lower()])
@@ -359,10 +353,11 @@ class BaseInstaller(ABC):
             logger.info(f"Trying to install {library} on the platform...")
 
             try:
-                if not COMPILERS_AVAILABLE[library]():
-                    install_ok = COMPILER_INSTALLERS[library]()
-                else:
-                    install_ok = True
+                install_ok = (
+                    True
+                    if COMPILERS_AVAILABLE[library]()
+                    else COMPILER_INSTALLERS[library]()
+                )
             except Exception:
                 install_ok = False
 
@@ -436,10 +431,7 @@ class TensorflowInstaller(BaseInstaller):
         except ImportError:
             return False
 
-        if not check_module_version(tensorflow, min_version="2.7.0"):
-            return False
-
-        return True
+        return bool(check_module_version(tensorflow, min_version="2.7.0"))
 
     @staticmethod
     def install_framework():
@@ -451,11 +443,9 @@ class TensorflowInstaller(BaseInstaller):
                 "tensorflow>=2.7.0, 2.12.0",
                 "numpy<1.24",
             ]
-            subprocess.run(cmd)
         else:
             cmd = ["pip3", "install", "--user", "tensorflow>=2.7.0, <2.12.0"]
-            subprocess.run(cmd)
-
+        subprocess.run(cmd)
         try:
             import tensorflow  # noqa F401
         except ImportError:
@@ -479,10 +469,7 @@ class ONNXInstaller(BaseInstaller):
         except ImportError:
             return False
 
-        if not check_module_version(onnx, min_version="1.10.0"):
-            return False
-
-        return True
+        return bool(check_module_version(onnx, min_version="1.10.0"))
 
     @staticmethod
     def install_framework():
@@ -557,10 +544,7 @@ class DiffusersInstaller(BaseInstaller):
         except ImportError:
             return False
 
-        if not check_module_version(diffusers, min_version="0.13.0"):
-            return False
-
-        return True
+        return bool(check_module_version(diffusers, min_version="0.13.0"))
 
     @staticmethod
     def install_framework():

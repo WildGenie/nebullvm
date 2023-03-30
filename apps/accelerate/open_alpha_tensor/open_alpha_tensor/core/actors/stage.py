@@ -30,7 +30,7 @@ def remove_duplicates(reducing_tensor: torch.Tensor):
     indexes = []
     idx_map = {}
     for idx in range(n_mc):
-        if len(indexes) == 0:
+        if not indexes:
             indexes.append(idx)
             idx_map[idx] = []
         else:
@@ -124,11 +124,10 @@ def _reduce_memory_consumption_before_storing(
     """
     final_states = [state[:, 0:2] for state in possible_states]
     previous_actions = possible_states[0][:, 2:]
-    storing_dict = {
+    return {
         "final_states": final_states,
         "previous_actions": previous_actions,
     }
-    return storing_dict
 
 
 def _recompose_possible_states(reduced_memory_states_dict: Dict):
@@ -139,7 +138,7 @@ def _recompose_possible_states(reduced_memory_states_dict: Dict):
     """
     final_states = reduced_memory_states_dict["final_states"]
     previous_actions = reduced_memory_states_dict["previous_actions"]
-    possible_states = [
+    return [
         torch.cat(
             [
                 final_states[i],
@@ -149,7 +148,6 @@ def _recompose_possible_states(reduced_memory_states_dict: Dict):
         )
         for i in range(len(final_states))
     ]
-    return possible_states
 
 
 def extract_present_state(state: torch.Tensor) -> torch.Tensor:
@@ -162,10 +160,9 @@ def to_hash(tensor: torch.Tensor) -> str:
     Args:
         tensor: The tensor to convert.
     """
-    hashable_tensor = "_".join(
+    return "_".join(
         tensor.reshape(-1).long().detach().cpu().numpy().astype(str).tolist()
     )
-    return hashable_tensor
 
 
 def from_hash(hashable_tensor: str, shape: tuple) -> torch.Tensor:
@@ -219,9 +216,7 @@ def select_future_state(
     ucb = q_values.reshape(-1) + pi * torch.sqrt(
         torch.sum(N_s_a) / (1 + N_s_a)
     ) * (c_1 + torch.log((torch.sum(N_s_a) + c_2 + 1) / c_2))
-    if return_idx:
-        return ucb.argmax()
-    return possible_states[ucb.argmax()]
+    return ucb.argmax() if return_idx else possible_states[ucb.argmax()]
 
 
 @torch.no_grad()
@@ -313,7 +308,7 @@ def simulate_game(
 def backward_pass(trajectory, states_dict, leaf_q_value: torch.Tensor):
     """Backward pass of the montecarlo algorithm"""
     reward = 0
-    for idx, (state, action_idx) in enumerate(reversed(trajectory)):
+    for state, action_idx in reversed(trajectory):
         if action_idx is None:  # leaf node
             reward += leaf_q_value
         else:
@@ -328,10 +323,11 @@ def backward_pass(trajectory, states_dict, leaf_q_value: torch.Tensor):
             if isinstance(reward, torch.Tensor):
                 reward = reward.to(q_values.device)
             action_idx = int(action_idx)
-            if action_idx in old_idx_to_new_idx:
-                not_dupl_index = old_idx_to_new_idx[int(action_idx)]
-            else:
-                not_dupl_index = action_idx
+            not_dupl_index = (
+                old_idx_to_new_idx[action_idx]
+                if action_idx in old_idx_to_new_idx
+                else action_idx
+            )
             reward -= 1
             q_values[:, not_dupl_index] = (
                 N_s_a[:, not_dupl_index] * q_values[:, not_dupl_index] + reward
@@ -381,8 +377,7 @@ def monte_carlo_tree_search(
     next_state_idx = select_future_state(
         possible_states, q_values, N_s_a, repetitions, return_idx=True
     )
-    next_state = possible_states[next_state_idx]
-    return next_state
+    return possible_states[next_state_idx]
 
 
 @torch.no_grad()
@@ -463,16 +458,15 @@ def actor_prediction(
         state_dict, hash_states, model.n_steps, model.n_logits, N_bar
     )
     reward = (
-        int(torch.linalg.matrix_rank(final_state).sum())
-        if not game_is_finished(final_state)
-        else 0
+        0
+        if game_is_finished(final_state)
+        else int(torch.linalg.matrix_rank(final_state).sum())
     )
     rewards = torch.cumsum(
         torch.tensor([-1] * (len(policies) - 1) + [reward]), dim=0
     )
     if return_actions:
-        actions = [state_dict[hash_state][5] for hash_state in hash_states]
-        return actions
+        return [state_dict[hash_state][5] for hash_state in hash_states]
     # policies do not have the batch size, but states still have it
     states = [s.squeeze(0) for s in states]
     return states, policies, rewards

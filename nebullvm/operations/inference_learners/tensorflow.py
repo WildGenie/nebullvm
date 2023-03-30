@@ -28,9 +28,7 @@ class TensorflowBackendInferenceLearner(TensorflowBaseInferenceLearner):
             self.set_model_on_gpu()
         with tf.device(self.device.to_tf_format()):
             res = self.model(input_tensors)
-        if not isinstance(res, tuple):
-            return (res,)
-        return res
+        return res if isinstance(res, tuple) else (res, )
 
     def save(self, path: Union[str, Path], **kwargs):
         path = Path(path)

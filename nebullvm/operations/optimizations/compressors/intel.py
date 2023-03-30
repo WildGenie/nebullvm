@@ -35,9 +35,7 @@ class IntelPruningCompressor(Compressor, ABC):
 
     @staticmethod
     def _get_default_config() -> Dict:
-        # see https://github.com/intel/neural-compressor/blob/master/neural_compressor/conf/config.py  # noqa
-        # for further details
-        config = {
+        return {
             "train": {
                 "optimizer": {
                     "SGD": {"learning_rate": 0.001},
@@ -71,7 +69,6 @@ class IntelPruningCompressor(Compressor, ABC):
                 }
             },
         }
-        return config
 
     def _prepare_pruning_config(self, model: Any):
         pruning_config = copy.deepcopy(self._config)
@@ -150,12 +147,12 @@ class INCDataset(Dataset):
         self.batch_size = input_data[0][0][0].shape[0]
 
     def __len__(self):
-        return sum([batch_inputs[0].shape[0] for batch_inputs, _ in self.data])
+        return sum(batch_inputs[0].shape[0] for batch_inputs, _ in self.data)
 
     def __getitem__(self, idx):
         batch_idx = int(idx / self.batch_size)
         item_idx = idx % self.batch_size
-        data = tuple([data[item_idx] for data in self.data[batch_idx][0]])
+        data = tuple(data[item_idx] for data in self.data[batch_idx][0])
         return data, self.data[batch_idx][1][item_idx]
 
 
@@ -164,8 +161,7 @@ class TorchIntelPruningCompressor(IntelPruningCompressor):
     def _get_dataloader(input_data: DataManager):
         bs = input_data[0][0][0].shape[0]
         ds = INCDataset(input_data)
-        dl = DataLoader(ds, bs)
-        return dl
+        return DataLoader(ds, bs)
 
     def _compute_error(
         self,

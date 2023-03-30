@@ -20,7 +20,7 @@ class TVMCalibrator(DataManager):
 
     def __getitem__(self, item: int):
         tuple_ = self._data_reader[item]
-        return {name: data for name, data in zip(self._input_names, tuple_)}
+        return dict(zip(self._input_names, tuple_))
 
 
 def quantize_apache_tvm(

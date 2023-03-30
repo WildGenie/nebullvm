@@ -45,7 +45,7 @@ class TensorRTCalibrator(IInt8EntropyCalibrator2):
     ):
         super(TensorRTCalibrator, self).__init__()
         self._bs = batch_size
-        self.batches = (x for x in input_data)
+        self.batches = iter(input_data)
 
     def get_batch(self, names):
         cuda_stream = polygraphy.Stream()

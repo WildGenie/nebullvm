@@ -29,10 +29,7 @@ def _save_model(model: Module, path: Path):
 
 
 def _load_model(path: Path):
-    if path.is_file():
-        return torch.load(path)
-    else:
-        return load_with_torch_fx(path)
+    return torch.load(path) if path.is_file() else load_with_torch_fx(path)
 
 
 def _save_dataset(input_data: DataManager, path: Path):

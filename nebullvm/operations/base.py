@@ -35,8 +35,5 @@ class Operation(abc.ABC):
         return self._state
 
     def to(self, device: Union[str, Device]):
-        if isinstance(device, str):
-            self.device = check_device(device)
-        else:
-            self.device = device
+        self.device = check_device(device) if isinstance(device, str) else device
         return self

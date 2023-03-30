@@ -176,12 +176,10 @@ class Trainer:
             self.beta = 1
         else:
             self.alpha, self.beta = loss_params
-        self.checkpoint_dir = Path(
-            checkpoint_dir if checkpoint_dir else BASE_CHECKPOINT_DIR
-        )
+        self.checkpoint_dir = Path(checkpoint_dir or BASE_CHECKPOINT_DIR)
         self.checkpoint_dir.mkdir(exist_ok=True, parents=True)
-        self.checkpoint_data_dir = (
-            checkpoint_data_dir if checkpoint_data_dir else Path(BASE_CHECKPOINT_DATA_DIR)
+        self.checkpoint_data_dir = checkpoint_data_dir or Path(
+            BASE_CHECKPOINT_DATA_DIR
         )
         self.checkpoint_data_dir.mkdir(exist_ok=True, parents=True)
         self.change_of_basis = ChangeOfBasis(
@@ -273,8 +271,6 @@ class Trainer:
                 if self.data_augmentation:
                     states, policies = swap_data(states, policies)
                     self.dataset.add_game(states, policies, rewards)
-            if best_game is not None:
-                self.dataset.add_best_game(*best_game)
         else:
             for actor_id in range(n_games):
                 input_tensor_cob = self.change_of_basis(input_tensor).to(
@@ -299,8 +295,8 @@ class Trainer:
                 if self.data_augmentation:
                     states, policies = swap_data(states, policies)
                     self.dataset.add_game(states, policies, rewards)
-            if best_game is not None:
-                self.dataset.add_best_game(*best_game)
+        if best_game is not None:
+            self.dataset.add_best_game(*best_game)
 
     def train(
         self,
@@ -335,7 +331,7 @@ class Trainer:
         if (
             starting_epoch + 1 > n_epochs // 10
         ):  # when restarting from a checkpoint
-            mc_n_sim = mc_n_sim * 4
+            mc_n_sim *= 4
         for epoch in range(starting_epoch, n_epochs):
             if epoch + 1 == n_epochs // 50:
                 self.dataset.change_training_split(0.7, 0.05)

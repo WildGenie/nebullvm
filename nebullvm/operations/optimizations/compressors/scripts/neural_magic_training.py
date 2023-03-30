@@ -54,9 +54,7 @@ def _export_model_onnx(
     exporter.export_onnx(
         input_batch, name=model_name, example_outputs=example_outputs
     )
-    onnx_path = save_path / model_name
-
-    return onnx_path
+    return save_path / model_name
 
 
 class RecipeBuilder:
@@ -70,7 +68,7 @@ class RecipeBuilder:
     def _compute_loss_sensitivity(self):
         sensitivities = []
         parameters = []
-        for i, node in enumerate(self.analysis["nodes"]):
+        for node in self.analysis["nodes"]:
             if node["prunable"]:
                 sensitivities.append(node["prunable_equation_sensitivity"])
                 parameters.append(node["prunable_params"])
@@ -88,28 +86,20 @@ class RecipeBuilder:
                 str(key): val for key, val in results_model.averages.items()
             },
         }
-        ops = []
-
-        for res in results:
-            ops.append(
-                {
-                    "id": res.id_,
-                    "name": res.name,
-                    "index": res.index,
-                    "baseline_measurement_key": (
-                        str(res.baseline_measurement_key)
-                    ),
-                    "measurements": {
-                        str(key): val for key, val in res.averages.items()
-                    },
-                }
-            )
-
+        ops = [
+            {
+                "id": res.id_,
+                "name": res.name,
+                "index": res.index,
+                "baseline_measurement_key": (str(res.baseline_measurement_key)),
+                "measurements": {
+                    str(key): val for key, val in res.averages.items()
+                },
+            }
+            for res in results
+        ]
         pruning = {"model": model, "ops": ops}
-        loss = {}
-        loss["baseline"] = {}
-        loss["pruning"] = pruning
-
+        loss = {"baseline": {}, "pruning": pruning}
         model = PruningModelEvaluator(
             self.analysis,
             None,
@@ -249,23 +239,15 @@ class PruningTrainer:
         epoch = manager.min_epochs
         while epoch < manager.max_epochs:
             # run training loop
-            epoch_name = "{}/{}".format(epoch + 1, manager.max_epochs)
-            logger.info("Running Training Epoch {}".format(epoch_name))
+            epoch_name = f"{epoch + 1}/{manager.max_epochs}"
+            logger.info(f"Running Training Epoch {epoch_name}")
             train_loss = self._run_model_one_epoch(train=True)
-            logger.info(
-                ("Training Epoch: {}\nTraining Loss: {}\n").format(
-                    epoch_name, train_loss
-                )
-            )
+            logger.info(f"Training Epoch: {epoch_name}\nTraining Loss: {train_loss}\n")
 
             # run validation loop
-            logger.info("Running Validation Epoch {}".format(epoch_name))
+            logger.info(f"Running Validation Epoch {epoch_name}")
             val_loss = self._run_model_one_epoch()
-            logger.info(
-                "Validation Epoch: {}\nVal Loss: {}\n".format(
-                    epoch_name, val_loss
-                )
-            )
+            logger.info(f"Validation Epoch: {epoch_name}\nVal Loss: {val_loss}\n")
 
             epoch += 1
 
@@ -323,10 +305,9 @@ def _train_model(
             training_epochs=training_epochs,
         )
         trainer = PruningTrainer(model, batch_size)
-        pruned_model = trainer.train(
+        return trainer.train(
             manager, train_data, eval_data, lr=lr, momentum=momentum
         )
-        return pruned_model
 
 
 def _save_model(model: torch.nn.Module, path: str):

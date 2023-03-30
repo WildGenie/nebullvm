@@ -63,12 +63,12 @@ class HuggingFaceInferenceLearner(InferenceLearnerWrapper):
         expects them to be in the HuggingFace interface. Mixed representation
         is not allowed and will result in an error.
         """
-        if len(args) > 0 and len(kwargs) > 0:
+        if args and kwargs:
             raise RuntimeError(
                 "Not allowed usage of the predict method. "
                 "Either the positional or the keyword arguments must be given."
             )
-        if len(args) > 0:
+        if args:
             return self.core_inference_learner(*args)
         inputs = (kwargs.pop(name) for name in self.input_names)
         outputs = self.core_inference_learner(*inputs)
@@ -87,12 +87,10 @@ class HuggingFaceInferenceLearner(InferenceLearnerWrapper):
             "input_names": self.input_names,
         }
         if self.output_type is not None:
-            metadata_kwargs.update(
-                {
-                    "output_type": self.output_type.__name__,
-                    "output_type_module": self.output_type.__module__,
-                }
-            )
+            metadata_kwargs |= {
+                "output_type": self.output_type.__name__,
+                "output_type_module": self.output_type.__module__,
+            }
         return metadata_kwargs
 
     @staticmethod

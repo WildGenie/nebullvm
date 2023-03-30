@@ -118,7 +118,7 @@ class SaveModelOp(Operation):
             model (AlphaTensorModel): OpenAlphaTensor model to be saved.
             save_dir (str): Directory where the model will be saved.
         """
-        save_dir = Path(save_dir if save_dir else ".")
+        save_dir = Path(save_dir or ".")
         save_dir.mkdir(parents=True, exist_ok=True)
         torch.save(model.state_dict(), save_dir / "final_model.pt")
         model_params = {

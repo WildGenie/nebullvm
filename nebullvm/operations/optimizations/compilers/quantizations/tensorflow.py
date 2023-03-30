@@ -7,8 +7,7 @@ from nebullvm.tools.base import QuantizationType
 def _quantize_dynamic(model: tf.Module):
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    tflite_quant_model = converter.convert()
-    return tflite_quant_model
+    return converter.convert()
 
 
 def _quantize_static(model: tf.Module, dataset: List[Tuple[tf.Tensor, ...]]):
@@ -27,8 +26,7 @@ def _half_precision(model: tf.Module):
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.target_spec.supported_types = [tf.float16]
-    tflite_quant_model = converter.convert()
-    return tflite_quant_model
+    return converter.convert()
 
 
 def quantize_tensorflow(

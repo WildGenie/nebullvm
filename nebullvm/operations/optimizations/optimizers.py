@@ -54,8 +54,7 @@ class TensorflowOptimizer(Optimizer):
     def _select_compilers_from_hardware(self):
         compilers = []
         if tensorflow_is_available():
-            compilers.append(ModelCompiler.XLA)
-            compilers.append(ModelCompiler.TFLITE)
+            compilers.extend((ModelCompiler.XLA, ModelCompiler.TFLITE))
         return compilers
 
 

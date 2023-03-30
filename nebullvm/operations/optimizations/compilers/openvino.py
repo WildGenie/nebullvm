@@ -97,7 +97,7 @@ class OpenVINOCompiler(Compiler):
             return None
 
         if quantization_type is QuantizationType.HALF:
-            cmd = cmd + ["--compress_to_fp16"]
+            cmd += ["--compress_to_fp16"]
 
         process = subprocess.Popen(cmd)
         process.wait()

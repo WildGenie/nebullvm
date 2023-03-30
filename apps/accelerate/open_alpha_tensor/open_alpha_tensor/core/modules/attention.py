@@ -24,8 +24,7 @@ class AttentionHead(torch.nn.Module):
         )
         if mask:
             attention = torch.triu(attention, diagonal=1)
-        output = torch.matmul(attention, values)
-        return output
+        return torch.matmul(attention, values)
 
 
 class AttentionDenseBlock(torch.nn.Module):

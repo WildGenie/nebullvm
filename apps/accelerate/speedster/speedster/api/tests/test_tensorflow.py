@@ -26,9 +26,7 @@ from nebullvm.tools.utils import gpu_is_available
 
 from speedster import optimize_model, load_model
 
-# Limit tensorflow gpu memory usage
-gpus = tf.config.list_physical_devices("GPU")
-if gpus:
+if gpus := tf.config.list_physical_devices("GPU"):
     try:
         # Currently, memory growth needs to be the same across GPUs
         for gpu in gpus:
@@ -45,9 +43,7 @@ if gpus:
 
 def test_tensorflow_ort():
     model = ResNet50()
-    input_data = [
-        ((tf.random.normal([1, 224, 224, 3]),), 0) for i in range(100)
-    ]
+    input_data = [((tf.random.normal([1, 224, 224, 3]),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -56,7 +52,7 @@ def test_tensorflow_ort():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     with TemporaryDirectory() as tmp_dir:
@@ -77,9 +73,7 @@ def test_tensorflow_ort():
 
 def test_tensorflow_tf_backend():
     model = ResNet50()
-    input_data = [
-        ((tf.random.normal([1, 224, 224, 3]),), 0) for i in range(100)
-    ]
+    input_data = [((tf.random.normal([1, 224, 224, 3]),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -88,7 +82,7 @@ def test_tensorflow_tf_backend():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "xla"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     # Try the optimized model
@@ -106,9 +100,7 @@ def test_tensorflow_tf_backend():
 )
 def test_tensorflow_tflite():
     model = ResNet50()
-    input_data = [
-        ((tf.random.normal([1, 224, 224, 3]),), 0) for i in range(100)
-    ]
+    input_data = [((tf.random.normal([1, 224, 224, 3]),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -117,7 +109,7 @@ def test_tensorflow_tflite():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "tflite"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         metric_drop_ths=0.1,
     )
 
@@ -136,9 +128,7 @@ def test_tensorflow_tflite():
 )
 def test_tensorflow_tensorrt():
     model = ResNet50()
-    input_data = [
-        ((tf.random.normal([1, 224, 224, 3]),), 0) for i in range(100)
-    ]
+    input_data = [((tf.random.normal([1, 224, 224, 3]),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -147,7 +137,7 @@ def test_tensorflow_tensorrt():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "tensor_rt"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     # Try the optimized model
@@ -165,9 +155,7 @@ def test_tensorflow_tensorrt():
 )
 def test_tensorflow_openvino():
     model = ResNet50()
-    input_data = [
-        ((tf.random.normal([1, 224, 224, 3]),), 0) for i in range(100)
-    ]
+    input_data = [((tf.random.normal([1, 224, 224, 3]),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -176,7 +164,7 @@ def test_tensorflow_openvino():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "openvino"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         device="cpu",
     )
 
@@ -194,9 +182,7 @@ def test_tensorflow_openvino():
 )
 def test_tensorflow_tvm():
     model = ResNet50()
-    input_data = [
-        ((tf.random.normal([1, 224, 224, 3]),), 0) for i in range(100)
-    ]
+    input_data = [((tf.random.normal([1, 224, 224, 3]),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -205,7 +191,7 @@ def test_tensorflow_tvm():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "tvm"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     # Try the optimized model

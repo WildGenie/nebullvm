@@ -34,7 +34,7 @@ from speedster import optimize_model, load_model
 
 def test_torch_ort():
     model = models.resnet18()
-    input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+    input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -43,7 +43,7 @@ def test_torch_ort():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     with TemporaryDirectory() as tmp_dir:
@@ -66,7 +66,7 @@ def test_torch_ort():
 
 def test_torch_ort_quant():
     model = models.resnet18()
-    input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+    input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -75,7 +75,7 @@ def test_torch_ort_quant():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         metric_drop_ths=2,
     )
 
@@ -92,7 +92,7 @@ def test_torch_ort_quant():
 
 def test_torch_torchscript():
     model = models.resnet18()
-    input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+    input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -101,7 +101,7 @@ def test_torch_torchscript():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "torchscript"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     # Try the optimized model
@@ -121,7 +121,7 @@ def test_torch_torchscript():
 )
 def test_torch_tensorrt():
     model = models.resnet18()
-    input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+    input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -130,7 +130,7 @@ def test_torch_tensorrt():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "tensor_rt"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     # Try the optimized model
@@ -140,8 +140,9 @@ def test_torch_tensorrt():
     res_optimized = optimized_model(x)[0]
 
     assert isinstance(
-        optimized_model, PytorchTensorRTInferenceLearner
-    ) or isinstance(optimized_model, PytorchONNXTensorRTInferenceLearner)
+        optimized_model,
+        (PytorchTensorRTInferenceLearner, PytorchONNXTensorRTInferenceLearner),
+    )
     assert torch.max(abs((res_original - res_optimized))) < 1e-2
 
 
@@ -151,7 +152,7 @@ def test_torch_tensorrt():
 )
 def test_torch_openvino():
     model = models.resnet18()
-    input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+    input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -160,7 +161,7 @@ def test_torch_openvino():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "openvino"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         device="cpu",
     )
 
@@ -179,7 +180,7 @@ def test_torch_openvino():
 )
 def test_torch_tvm():
     model = models.resnet18()
-    input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+    input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -188,7 +189,7 @@ def test_torch_tvm():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "tvm"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     # Try the optimized model
@@ -208,7 +209,7 @@ def test_torch_tvm():
 )
 def test_torch_bladedisc():
     model = models.resnet18()
-    input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+    input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
 
     # Run nebullvm optimization in one line of code
     optimized_model = optimize_model(
@@ -217,7 +218,7 @@ def test_torch_bladedisc():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "bladedisc"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
     )
 
     # Try the optimized model

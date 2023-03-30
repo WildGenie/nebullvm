@@ -63,13 +63,12 @@ def convert_torch_to_onnx(
             f"output shapes are: {output_sizes} "
         )
 
-        dynamic_info = {
-            name: dynamic_dict
-            for name, dynamic_dict in zip(
+        dynamic_info = dict(
+            zip(
                 input_names + output_names,
                 onnx_format_inputs + dynamic_info.outputs,
             )
-        }
+        )
 
     try:
         # try conversion with model on cpu

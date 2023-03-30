@@ -56,13 +56,12 @@ class MyTokenizer:
         if bos:
             t = [self.bos_id] + t
         if eos:
-            t = t + [self.eos_id]
+            t += [self.eos_id]
         return t
 
     def decode(self, t: List[int]) -> str:
         input = torch.as_tensor(t)
-        output = self.sp_model.decode(input)
-        return output
+        return self.sp_model.decode(input)
 
 
 class HFLikeTokenizer:
@@ -131,11 +130,10 @@ class HFLikeTokenizer:
                 torch.zeros_like(tokens),
                 tokens,
             )
-        output = {
+        return {
             "input_ids": tokens,
             "attention_mask": mask,
         }
-        return output
 
     def decode(self, tokens):
         return self.tokenizer.decode(tokens)
@@ -190,17 +188,14 @@ def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
     )
     t = torch.arange(end, device=freqs.device)  # type: ignore
     freqs = torch.outer(t, freqs).float()  # type: ignore
-    freqs_cis = torch.polar(torch.ones_like(freqs), freqs)  # complex64
-    return freqs_cis
+    return torch.polar(torch.ones_like(freqs), freqs)
 
 
 def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
     ndim = x.ndim
     assert 0 <= 1 < ndim
     assert freqs_cis.shape == (x.shape[1], x.shape[-1])
-    shape = [
-        d if i == 1 or i == ndim - 1 else 1 for i, d in enumerate(x.shape)
-    ]
+    shape = [d if i in [1, ndim - 1] else 1 for i, d in enumerate(x.shape)]
     return freqs_cis.view(*shape)
 
 
@@ -295,8 +290,6 @@ class Attention(nn.Module):
         cache_k: Optional[torch.Tensor] = None,
         cache_v: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        start_pos = 0  # Temporary
-
         bsz, seqlen, _ = x.shape
         xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
 
@@ -317,6 +310,8 @@ class Attention(nn.Module):
         else:
             cache_k.to(xk.device)
             cache_v.to(xv.device)
+            start_pos = 0  # Temporary
+
             cache_k[:bsz, start_pos : start_pos + seqlen] = xk  # noqa E203
             cache_v[:bsz, start_pos : start_pos + seqlen] = xv  # noqa E203
             keys = self.cache_k[:bsz, : start_pos + seqlen]  # noqa E203
@@ -500,8 +495,7 @@ class Transformer(nn.Module):
         self, tokens: torch.Tensor, attention_mask: torch.Tensor
     ) -> torch.Tensor:
         attention_mask = attention_mask.detach()
-        logits = self._forward(tokens, attention_mask)
-        return logits
+        return self._forward(tokens, attention_mask)
 
     def _forward(
         self, tokens: torch.Tensor, attention_mask: torch.Tensor
@@ -557,7 +551,7 @@ class Transformer(nn.Module):
         no_repeat_ngram_size=None,
     ):
         generated_tokens = []
-        for cur_pos in range(max_new_tokens):
+        for _ in range(max_new_tokens):
             logits = self._forward(input_ids, attention_mask)[:, -1, :]
             if temperature > 0:
                 probs = torch.softmax(logits / temperature, dim=-1)
@@ -571,10 +565,9 @@ class Transformer(nn.Module):
                 dim=1,
             )
             generated_tokens.append(next_token)
-        sequences = torch.concat(
+        return torch.concat(
             (input_ids, torch.stack(generated_tokens, dim=1)), dim=1
         )
-        return sequences
 
 
 def setup_model_parallel() -> Tuple[int, int]:
@@ -647,13 +640,11 @@ def load_model(
 
 
 def load_tokenizer(tokenizer_path: str):
-    tokenizer = Tokenizer(model_path=tokenizer_path)
-    return tokenizer
+    return Tokenizer(model_path=tokenizer_path)
 
 
 def load_tokenizer_test(tokenizer_path: Optional[str] = None):
-    tokenizer = MyTokenizer(model_path=tokenizer_path)
-    return tokenizer
+    return MyTokenizer(model_path=tokenizer_path)
 
 
 def load_model_test(

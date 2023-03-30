@@ -397,8 +397,7 @@ class LearnerMetadata:
                 function.
         """
         exec(f"from {self.module_name} import {self.class_name}")
-        model = eval(self.class_name).load(path=path, **kwargs)
-        return model
+        return eval(self.class_name).load(path=path, **kwargs)
 
 
 class PytorchBaseInferenceLearner(BaseInferenceLearner, ABC):
@@ -441,8 +440,7 @@ class PytorchBaseInferenceLearner(BaseInferenceLearner, ABC):
         self._is_gpu_ready = True
 
     def _read_file(self, input_file: Union[str, Path]) -> torch.Tensor:
-        input_tensor = torch.load(input_file)
-        return input_tensor
+        return torch.load(input_file)
 
     def _save_file(
         self, prediction: torch.Tensor, output_file: Union[str, Path]
@@ -500,8 +498,7 @@ class TensorflowBaseInferenceLearner(BaseInferenceLearner, ABC):
 
     def _read_file(self, input_file: Union[str, Path]) -> tf.Tensor:
         numpy_array = np.load(input_file)
-        input_tensor = tf.convert_to_tensor(numpy_array)
-        return input_tensor
+        return tf.convert_to_tensor(numpy_array)
 
     def _save_file(self, prediction: tf.Tensor, output_file: Union[str, Path]):
         prediction.numpy().save(output_file)
@@ -549,8 +546,7 @@ class NumpyBaseInferenceLearner(BaseInferenceLearner, ABC):
         return tensor.tolist()
 
     def _read_file(self, input_file: Union[str, Path]) -> np.ndarray:
-        numpy_array = np.load(input_file)
-        return numpy_array
+        return np.load(input_file)
 
     def _save_file(
         self, prediction: np.ndarray, output_file: Union[str, Path]

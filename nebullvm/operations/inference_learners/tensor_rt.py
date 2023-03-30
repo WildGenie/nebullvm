@@ -75,8 +75,7 @@ class ONNXTensorRTInferenceLearner(BaseInferenceLearner, ABC):
     def _get_metadata(self, **kwargs) -> LearnerMetadata:
         metadata = {
             key: self.__dict__[key] for key in ("input_names", "output_names")
-        }
-        metadata.update(kwargs)
+        } | kwargs
         return LearnerMetadata.from_model(self, **metadata)
 
     def _synchronize_stream(self):

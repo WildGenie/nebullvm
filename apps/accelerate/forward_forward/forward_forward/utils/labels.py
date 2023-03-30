@@ -51,8 +51,7 @@ class LabelsInjector:
             1
         )
         replicated_input = input_image.repeat(1, len(self.labels), 1)
-        new_input = torch.cat([replicated_input, labels], dim=2)
-        return new_input  # .reshape(-1, new_input.shape[2])
+        return torch.cat([replicated_input, labels], dim=2)
 
 
 def select_random_different_label(labels: torch.Tensor, n_classes: int):

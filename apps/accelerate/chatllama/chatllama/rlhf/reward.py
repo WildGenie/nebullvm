@@ -49,21 +49,20 @@ class RewardModel(torch.nn.Module):
 
         # initialize the self.model
         head_hidden_size = config.model_head_hidden_size
-        if config.model in hf_models:
-            self.tokenizer = self.load_tokenizer(config)
-            self.model = AutoModel.from_pretrained(config.model)
-            head_dim = self.model.config.hidden_size
-            if config.model.startswith("gpt2"):
-                head_dim = self.model.config.n_embd
-            self.head = torch.nn.Sequential(
-                torch.nn.Linear(head_dim, head_hidden_size),
-                torch.nn.ReLU(),
-                torch.nn.Linear(head_hidden_size, 1),
-                Rearrange("... 1 -> ..."),
-            )
-        else:
+        if config.model not in hf_models:
             raise ValueError(f"Model {config.model} not supported")
 
+        self.tokenizer = self.load_tokenizer(config)
+        self.model = AutoModel.from_pretrained(config.model)
+        head_dim = self.model.config.hidden_size
+        if config.model.startswith("gpt2"):
+            head_dim = self.model.config.n_embd
+        self.head = torch.nn.Sequential(
+            torch.nn.Linear(head_dim, head_hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(head_hidden_size, 1),
+            Rearrange("... 1 -> ..."),
+        )
         # load the model
         self.load()
 
@@ -138,10 +137,8 @@ class RewardModel(torch.nn.Module):
         self,
     ) -> Iterable[torch.nn.Parameter]:
         """Return the parameters of the reward model"""
-        for p in self.model.parameters():
-            yield p
-        for p in self.head.parameters():
-            yield p
+        yield from self.model.parameters()
+        yield from self.head.parameters()
 
     @beartype
     def forward(
@@ -224,8 +221,7 @@ class RewardDataset(Dataset):
         user_input = self.data[idx]["user_input"]
         completion = self.data[idx]["completion"]
         score = float(self.data[idx]["score"])
-        item = (user_input + completion, score)
-        return item
+        return user_input + completion, score
 
     def __len__(
         self,
@@ -281,11 +277,7 @@ class RewardTrainer:
         # loss function
         self.loss_function = torch.nn.MSELoss()
 
-        # check validation dataset
-        self.validation_flag = False
-        if config.validation_dataset_path is not None:
-            self.validation_flag = True
-
+        self.validation_flag = config.validation_dataset_path is not None
         # create dataset and dataloaders
         self.train_dataset = RewardDataset(config.train_dataset_path)
         self.train_dataloader = DataLoader(

@@ -143,12 +143,9 @@ class ApacheTVMCompiler(Compiler, ABC):
     def _build_tvm_model_from_onnx(
         onnx_model_path: str, model_params: ModelParams
     ) -> Tuple[IRModule, Dict[str, NDArray]]:
-        shape_dict = {
-            input_key: input_size
-            for input_key, input_size in zip(
-                get_input_names(onnx_model_path), model_params.input_sizes
-            )
-        }
+        shape_dict = dict(
+            zip(get_input_names(onnx_model_path), model_params.input_sizes)
+        )
         onnx_model = onnx.load(onnx_model_path)
         mod, params = relay.frontend.from_onnx(onnx_model, shape_dict)
         return mod, params
@@ -173,10 +170,7 @@ class ApacheTVMCompiler(Compiler, ABC):
 
     @staticmethod
     def _get_target(device) -> str:
-        if device.type is DeviceType.GPU:
-            return str(tvm.target.cuda())
-        else:
-            return "llvm"  # run on CPU
+        return str(tvm.target.cuda()) if device.type is DeviceType.GPU else "llvm"
 
     @staticmethod
     def _tune_tvm_model(
@@ -200,7 +194,7 @@ class ApacheTVMCompiler(Compiler, ABC):
         )
 
         # Tune the extracted tasks sequentially.
-        for i, task in enumerate(tasks):
+        for task in tasks:
             tuner_obj = XGBTuner(task, loss_type="rank")
             tuner_obj.tune(
                 n_trial=min(

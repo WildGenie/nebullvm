@@ -41,9 +41,7 @@ def _running_on_intel_cpu(use_gpu):
     if use_gpu:
         return False  # running on GPU
     cpu_info = cpuinfo.get_cpu_info()["brand_raw"].lower()
-    if "intel" in cpu_info:
-        return True
-    return False
+    return "intel" in cpu_info
 
 
 def _get_ort_session_options(use_gpu) -> ort.SessionOptions:
@@ -117,19 +115,12 @@ class ONNXInferenceLearner(BaseInferenceLearner, ABC):
             and os.environ.get("LD_LIBRARY_PATH", False)
             and "tensorrt" in os.environ["LD_LIBRARY_PATH"]
         ):
-            ONNX_PROVIDERS["cuda"][0] = (
-                "TensorrtExecutionProvider",
-                {
-                    "device_id": device.idx,
-                    "trt_max_workspace_size": device.get_free_memory(),
-                    "trt_fp16_enable": True
-                    if quantization_type is not None
-                    else False,
-                    "trt_int8_enable": True
-                    if quantization_type is QuantizationType.STATIC
-                    else False,
-                },
-            )
+            ONNX_PROVIDERS["cuda"][0] = "TensorrtExecutionProvider", {
+                "device_id": device.idx,
+                "trt_max_workspace_size": device.get_free_memory(),
+                "trt_fp16_enable": quantization_type is not None,
+                "trt_int8_enable": quantization_type is QuantizationType.STATIC,
+            }
         else:
             if tensorrt_is_available():
                 logger.warning(
@@ -234,7 +225,7 @@ class ONNXInferenceLearner(BaseInferenceLearner, ABC):
         Returns:
             ONNXInferenceLearner: The optimized model.
         """
-        if len(kwargs) > 0:
+        if kwargs:
             logger.warning(
                 f"No extra keywords expected for the load method. "
                 f"Got {kwargs}."
@@ -264,12 +255,8 @@ class ONNXInferenceLearner(BaseInferenceLearner, ABC):
         )
 
     def _predict_arrays(self, input_arrays: Generator[np.ndarray, None, None]):
-        input_dict = {
-            name: input_array
-            for name, input_array in zip(self.input_names, input_arrays)
-        }
-        outputs = self._session.run(self.output_names, input_dict)
-        return outputs
+        input_dict = dict(zip(self.input_names, input_arrays))
+        return self._session.run(self.output_names, input_dict)
 
 
 class PytorchONNXInferenceLearner(
@@ -354,9 +341,9 @@ class TensorflowONNXInferenceLearner(
         if self.device.type is DeviceType.GPU and not self._is_gpu_ready:
             self.set_model_on_gpu()
         input_arrays = (
-            input_tensor.numpy()
-            if not isinstance(input_tensor, np.ndarray)
-            else input_tensor
+            input_tensor
+            if isinstance(input_tensor, np.ndarray)
+            else input_tensor.numpy()
             for input_tensor in input_tensors
         )
         outputs = self._predict_arrays(input_arrays)
@@ -399,7 +386,7 @@ class NumpyONNXInferenceLearner(
         """
         if self.device.type is DeviceType.GPU and not self._is_gpu_ready:
             self.set_model_on_gpu()
-        input_arrays = (input_tensor for input_tensor in input_tensors)
+        input_arrays = iter(input_tensors)
         outputs = self._predict_arrays(input_arrays)
         return tuple(outputs)
 

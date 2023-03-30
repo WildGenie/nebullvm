@@ -78,16 +78,14 @@ class ActorModel(torch.nn.Module):
             # Setup PEFT model
             if config.peft_enable:
 
-                # check that the peft config exist
-                if os.path.exists(config.peft_config_path):
-                    # Read the peft config from yaml
-                    with open(config.peft_config_path, "r") as c:
-                        config_peft = yaml.safe_load(c)
-                else:
+                if not os.path.exists(config.peft_config_path):
                     raise ValueError(
                         f"PEFT config {config.peft_config_path} not found"
                     )
 
+                # Read the peft config from yaml
+                with open(config.peft_config_path, "r") as c:
+                    config_peft = yaml.safe_load(c)
                 print(config_peft)
                 # define lora config for peft
                 peft_config = LoraConfig(
@@ -351,11 +349,7 @@ class ActorTrainer:
             self.actor.parameters(), lr=config.lr, weight_decay=1e-5
         )
 
-        # check if validation dataset is provided
-        self.validation_flag = False
-        if config.validation_dataset_path is not None:
-            self.validation_flag = True
-
+        self.validation_flag = config.validation_dataset_path is not None
         # create dataset and dataloaders
         self.train_dataset = ActorDataset(config.train_dataset_path)
         self.train_dataloader = DataLoader(

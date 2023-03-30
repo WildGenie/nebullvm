@@ -27,12 +27,12 @@ from speedster.api.tests.utils import torch_to_onnx
 def test_onnx_ort():
     with TemporaryDirectory() as tmp_dir:
         model = models.resnet18()
-        input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+        input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
         model_path = torch_to_onnx(model, input_data, tmp_dir)
 
         input_data = [
             ((np.random.randn(1, 3, 256, 256).astype(np.float32),), 0)
-            for i in range(100)
+            for _ in range(100)
         ]
 
         # Run nebullvm optimization in one line of code
@@ -44,8 +44,7 @@ def test_onnx_ort():
                 for compiler in COMPILER_LIST
                 if compiler != "onnxruntime"
             ],
-            ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
-            # metric_drop_ths=2,
+            ignore_compressors=list(COMPRESSOR_LIST),
         )
 
         with TemporaryDirectory() as tmp_dir:
@@ -76,12 +75,12 @@ def test_onnx_ort():
 def test_onnx_ort_quant():
     with TemporaryDirectory() as tmp_dir:
         model = models.resnet18()
-        input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+        input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
         model_path = torch_to_onnx(model, input_data, tmp_dir)
 
         input_data = [
             ((np.random.randn(1, 3, 256, 256).astype(np.float32),), 0)
-            for i in range(100)
+            for _ in range(100)
         ]
 
         # Run nebullvm optimization in one line of code
@@ -93,7 +92,7 @@ def test_onnx_ort_quant():
                 for compiler in COMPILER_LIST
                 if compiler != "onnxruntime"
             ],
-            ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+            ignore_compressors=list(COMPRESSOR_LIST),
             metric_drop_ths=2,
         )
 
@@ -119,12 +118,12 @@ def test_onnx_ort_quant():
 def test_onnx_tensorrt():
     with TemporaryDirectory() as tmp_dir:
         model = models.resnet18()
-        input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+        input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
         model_path = torch_to_onnx(model, input_data, tmp_dir)
 
         input_data = [
             ((np.random.randn(1, 3, 256, 256).astype(np.float32),), 0)
-            for i in range(100)
+            for _ in range(100)
         ]
 
         # Run nebullvm optimization in one line of code
@@ -136,7 +135,7 @@ def test_onnx_tensorrt():
                 for compiler in COMPILER_LIST
                 if compiler != "tensor_rt"
             ],
-            ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+            ignore_compressors=list(COMPRESSOR_LIST),
         )
 
         # Try the optimized model
@@ -161,12 +160,12 @@ def test_onnx_tensorrt():
 def test_onnx_openvino():
     with TemporaryDirectory() as tmp_dir:
         model = models.resnet18()
-        input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+        input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
         model_path = torch_to_onnx(model, input_data, tmp_dir)
 
         input_data = [
             ((np.random.randn(1, 3, 256, 256).astype(np.float32),), 0)
-            for i in range(100)
+            for _ in range(100)
         ]
 
         # Run nebullvm optimization in one line of code
@@ -178,7 +177,7 @@ def test_onnx_openvino():
                 for compiler in COMPILER_LIST
                 if compiler != "openvino"
             ],
-            ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+            ignore_compressors=list(COMPRESSOR_LIST),
             device="cpu",
         )
 
@@ -203,12 +202,12 @@ def test_onnx_openvino():
 def test_onnx_tvm():
     with TemporaryDirectory() as tmp_dir:
         model = models.resnet18()
-        input_data = [((torch.randn(1, 3, 256, 256),), 0) for i in range(100)]
+        input_data = [((torch.randn(1, 3, 256, 256),), 0) for _ in range(100)]
         model_path = torch_to_onnx(model, input_data, tmp_dir)
 
         input_data = [
             ((np.random.randn(1, 3, 256, 256).astype(np.float32),), 0)
-            for i in range(100)
+            for _ in range(100)
         ]
 
         # Run nebullvm optimization in one line of code
@@ -218,7 +217,7 @@ def test_onnx_tvm():
             ignore_compilers=[
                 compiler for compiler in COMPILER_LIST if compiler != "tvm"
             ],
-            ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+            ignore_compressors=list(COMPRESSOR_LIST),
         )
 
         # Try the optimized model

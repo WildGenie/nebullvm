@@ -11,10 +11,6 @@ try:
         Quantization,
         Pruning,
     )
-except ImportError:
-    cfg_to_qconfig = cfgs_to_fx_cfgs = None
-    MixedPrecision = Quantization = Pruning = DummyClass
-except ValueError:
-    # MacOS
+except (ImportError, ValueError):
     cfg_to_qconfig = cfgs_to_fx_cfgs = None
     MixedPrecision = Quantization = Pruning = DummyClass

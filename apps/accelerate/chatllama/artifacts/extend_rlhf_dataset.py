@@ -100,14 +100,14 @@ def main():
         chain = use_langchain_model(
             user_prompt, model_name, with_examples=True
         )
-    else:
-        if "t5" not in model_name:
-            raise ValueError("Only Flan-t5 models are supported for HF.")
+    elif "t5" in model_name:
         chain = use_huggingface_model(
             user_prompt, model_name, with_examples=True
         )
 
-    for i in range(args.num_prompts):
+    else:
+        raise ValueError("Only Flan-t5 models are supported for HF.")
+    for _ in range(args.num_prompts):
         example = np.random.choice(examples)
         new_example = chain.run(example=example["user_input"])
         example_dict = {"user_input": new_example}

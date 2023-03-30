@@ -139,7 +139,7 @@ class OpenVinoInferenceLearner(BaseInferenceLearner, ABC):
                 get the prediction.
             input_data (DataManager, optional): User defined data.
         """
-        if len(kwargs) > 0:
+        if kwargs:
             logger.warning(f"Found extra parameters: {kwargs}")
 
         core = Core()
@@ -205,17 +205,10 @@ class OpenVinoInferenceLearner(BaseInferenceLearner, ABC):
                 input_shape[int(key)] = -1
             dynamic_shapes.append(tuple(input_shape))
 
-        dynamic_shape_dict = {
-            k: v for k, v in zip(input_names, dynamic_shapes)
-        }
-        return dynamic_shape_dict
+        return dict(zip(input_names, dynamic_shapes))
 
     def _get_metadata(self, **kwargs) -> LearnerMetadata:
-        # metadata = {
-        #     key: self.__dict__[key] for key in ("input_keys", "output_keys")
-        # }
-        metadata = {}
-        metadata.update(kwargs)
+        metadata = {} | kwargs
         return LearnerMetadata.from_model(self, **metadata)
 
     def save(self, path: Union[str, Path], **kwargs):
@@ -245,12 +238,7 @@ class OpenVinoInferenceLearner(BaseInferenceLearner, ABC):
     ) -> Generator[np.ndarray, None, None]:
 
         results = self.infer_request.infer(
-            inputs={
-                input_key: input_array
-                for input_key, input_array in zip(
-                    self.input_keys, input_arrays
-                )
-            }
+            inputs=dict(zip(self.input_keys, input_arrays))
         )
         results = {
             output_key.get_any_name(): output_arr
@@ -399,7 +387,7 @@ class NumpyOpenVinoInferenceLearner(
                 as the multiple-output of the model given a (multi-) tensor
                 input.
         """
-        input_arrays = (input_tensor for input_tensor in input_tensors)
+        input_arrays = iter(input_tensors)
         output_arrays = self._predict_array(input_arrays)
         return tuple(output_arrays)
 

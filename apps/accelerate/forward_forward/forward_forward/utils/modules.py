@@ -480,8 +480,7 @@ class RecurrentFCNetFF(BaseFFLayer):
                 torch.zeros_like(x_proj, device=self.device),
                 torch.zeros_like(x_proj, device=self.device),
             )
-        states.append(x_proj)
-        states.append(y)
+        states.extend((x_proj, y))
         y_arg = torch.argmax(y, dim=1)
         x_proj_ = x_proj.clone()
         x_proj_[torch.arange(x_proj.shape[0]), y_arg] = -1e6
@@ -679,8 +678,7 @@ class LMFFLinearSoftmax(BaseFFLayer):
 
     @torch.no_grad()
     def positive_eval(self, x: torch.Tensor):
-        pred = self(x)
-        return pred
+        return self(x)
 
 
 class LMFFNet(BaseFFLayer):

@@ -59,13 +59,12 @@ class FeedbackCollector:
             "accept": "application/json",
             "Content-Type": "application/json",
         }
-        response = requests.post(
+        return requests.post(
             self._url,
             data=json.dumps(request_body),
             headers=headers,
             timeout=timeout,
         )
-        return response
 
     def get(self, key: str, default: Any = None):
         return self._metadata.get(key, default)
