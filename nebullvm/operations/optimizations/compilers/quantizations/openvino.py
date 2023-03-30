@@ -23,9 +23,7 @@ class _CalibrationDataLoader(DataLoader):
         return len(self._input_data)
 
     def __getitem__(self, item):
-        inputs = {
-            k: v for (k, v) in zip(self._input_names, self._input_data[item])
-        }
+        inputs = dict(zip(self._input_names, self._input_data[item]))
         return (
             (item, None),
             inputs,

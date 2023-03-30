@@ -72,9 +72,7 @@ def change_tokenization(tokens, tokenizer1, tokenizer2):
 
     # decode tokens
     with torch.no_grad():
-        decoded_tokens = [
-            tokenizer1.decode(token) for i, token in enumerate(tokens)
-        ]
+        decoded_tokens = [tokenizer1.decode(token) for token in tokens]
 
         # remove all the pad tokens
         decoded_tokens = [
@@ -417,8 +415,7 @@ class ExperienceDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx) -> Tuple:
-        # return the idx-th memory element as a tuple of tensors on the device
-        item = (
+        return (
             self.data[idx].states_actor.to(self.device),
             self.data[idx].actions.to(self.device),
             self.data[idx].values.to(self.device),
@@ -431,7 +428,6 @@ class ExperienceDataset(Dataset):
             int(self.data[idx].action_len_actor),
             int(self.data[idx].action_len_critic),
         )
-        return item
 
 
 class ExamplesSampler:
@@ -678,17 +674,15 @@ class RLTrainer:
             )
             self.training_stats = checkpoint["training_stats"]
 
-        # check if there are some discrepancies between the checkpoints
         if critic_episode == actor_episode:
             # all ok start from next episode
             return critic_episode + 1
-        else:
-            print(
-                f"There are some discrepancies between the checkpoints"
-                f"of actor and critic \nactor episode: {actor_episode}"
-                f"\n critic episode: {critic_episode}\n"
-            )
-            return min(critic_episode, actor_episode) + 1
+        print(
+            f"There are some discrepancies between the checkpoints"
+            f"of actor and critic \nactor episode: {actor_episode}"
+            f"\n critic episode: {critic_episode}\n"
+        )
+        return min(critic_episode, actor_episode) + 1
 
     @beartype
     def learn(self, memories: Deque[Memory]) -> None:
@@ -896,11 +890,9 @@ class RLTrainer:
                         advantages.std() + self.eps
                     )
 
-                    surr1 = advantages * ratios
                 else:
                     advantages = rewards - old_values[:, -1]
-                    surr1 = advantages * ratios
-
+                surr1 = advantages * ratios
                 surr2 = (
                     torch.clamp(ratios, 1 - actor_eps_clip, 1 + actor_eps_clip)
                     * advantages
@@ -1167,7 +1159,7 @@ class RLTrainer:
                     print("len memories", len(memories))
                     # self.conversation_log.show(cnt_learn_iter)
                     self.learn(memories)
-                    mean_reward = sum([m.rewards[-1] for m in memories]) / len(
+                    mean_reward = sum(m.rewards[-1] for m in memories) / len(
                         memories
                     )
                     print(f"Mean Reward: {mean_reward}")

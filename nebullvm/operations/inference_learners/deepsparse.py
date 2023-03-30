@@ -103,7 +103,7 @@ class DeepSparseInferenceLearner(BaseInferenceLearner, ABC):
         Returns:
             DeepSparseInferenceLearner: The optimized model.
         """
-        if len(kwargs) > 0:
+        if kwargs:
             logger.warning(
                 f"No extra keywords expected for the load method. "
                 f"Got {kwargs}."
@@ -126,9 +126,8 @@ class DeepSparseInferenceLearner(BaseInferenceLearner, ABC):
         )
 
     def _predict_arrays(self, input_arrays: Generator[np.ndarray, None, None]):
-        inputs = [array for array in input_arrays]
-        outputs = self.engine(inputs)
-        return outputs
+        inputs = list(input_arrays)
+        return self.engine(inputs)
 
 
 class PytorchDeepSparseInferenceLearner(

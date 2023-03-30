@@ -104,7 +104,7 @@ def extract_info_from_tf_data(
 
     input_row = dataset[0][0]
     batch_size = int(input_row[0].shape[0])
-    if not all([input_row[0].shape[0] == x.shape[0] for x in input_row]):
+    if any(input_row[0].shape[0] != x.shape[0] for x in input_row):
         logger.warning("Detected not consistent batch size in the inputs.")
 
     input_sizes = [tuple(x.shape) for x in input_row]
@@ -131,8 +131,7 @@ def tensorflow_is_gpu_available():
 
 
 def tensorflow_get_gpu_name():
-    gpu_devices = tf.config.list_physical_devices("GPU")
-    if gpu_devices:
+    if gpu_devices := tf.config.list_physical_devices("GPU"):
         details = tf.config.experimental.get_device_details(gpu_devices[0])
         details.get("device_name", "Unknown GPU")
         return details["device_name"]

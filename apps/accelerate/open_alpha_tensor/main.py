@@ -8,10 +8,7 @@ from open_alpha_tensor import train_alpha_tensor
 
 def _compute_largest_divisor(n: int) -> int:
     """Compute the largest divisor of n."""
-    for i in range(n // 2, 0, -1):
-        if n % i == 0:
-            return i
-    return 1
+    return next((i for i in range(n // 2, 0, -1) if n % i == 0), 1)
 
 
 def main():

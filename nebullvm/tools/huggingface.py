@@ -45,9 +45,7 @@ class PyTorchTransformerWrapper(Module):
             self.inputs_types[key] = value.dtype
 
     def forward(self, *args: torch.Tensor):
-        inputs = {
-            key: value for key, value in zip(self.inputs_types.keys(), args)
-        }
+        inputs = dict(zip(self.inputs_types.keys(), args))
         outputs = self.core_model(**inputs)
         outputs = outputs.values() if isinstance(outputs, dict) else outputs
         return tuple(flatten_outputs(outputs))
@@ -66,9 +64,7 @@ class TensorFlowTransformerWrapper(tf.keras.Model):
             self.inputs_types[key] = value.dtype
 
     def call(self, *args: tf.Tensor):
-        inputs = {
-            key: value for key, value in zip(self.inputs_types.keys(), args[0])
-        }
+        inputs = dict(zip(self.inputs_types.keys(), args[0]))
         outputs = self.core_model(**inputs)
         outputs = outputs.values() if isinstance(outputs, dict) else outputs
         return tuple(flatten_outputs(list(outputs)))
@@ -92,9 +88,8 @@ def get_size_recursively(
 ) -> List[int]:
     if isinstance(tensor_tuple[0], (torch.Tensor, tf.Tensor)):
         return [len(tensor_tuple)]
-    else:
-        inner_size = get_size_recursively(tensor_tuple[0])
-        return [len(tensor_tuple), *inner_size]
+    inner_size = get_size_recursively(tensor_tuple[0])
+    return [len(tensor_tuple), *inner_size]
 
 
 def get_output_structure_from_text(
@@ -197,6 +192,4 @@ def restructure_output(
                 )
             )
             idx += np.prod(value)
-    if output_type is not None:
-        return output_type(**output_dict)
-    return output_dict
+    return output_type(**output_dict) if output_type is not None else output_dict

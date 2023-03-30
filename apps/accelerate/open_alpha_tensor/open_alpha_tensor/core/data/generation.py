@@ -27,7 +27,7 @@ def generate_synthetic_data(
         rank = limit_rank
         output_tensor = torch.zeros(tensor_size, tensor_size, tensor_size)
         list_of_triplets = []
-        for i in range(rank):
+        for _ in range(rank):
             valid_triplet = False
             while not valid_triplet:
                 u = prob_distr(tensor_size)

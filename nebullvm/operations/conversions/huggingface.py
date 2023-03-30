@@ -41,7 +41,7 @@ class _HFTextDataset(Sequence):
         if self._tokenizer.pad_token is None:
             self._tokenizer.pad_token = self._tokenizer.eos_token
         _tokenizer_args = {"truncation": True, "padding": True}
-        _tokenizer_args.update(tokenizer_args)
+        _tokenizer_args |= tokenizer_args
         self._tokenizer_args = _tokenizer_args
 
     def __getitem__(self, item: int):
@@ -78,10 +78,7 @@ class _HFDictDataset(Sequence):
         if pointer >= len(self._input_data):
             raise IndexError
         mini_batch = self._input_data[pointer]
-        if self._ys is not None:
-            mini_batch_y = self._ys[pointer]
-        else:
-            mini_batch_y = None
+        mini_batch_y = self._ys[pointer] if self._ys is not None else None
         return (
             tuple(self._concatenate(mini_batch, key) for key in self._keys),
             mini_batch_y,

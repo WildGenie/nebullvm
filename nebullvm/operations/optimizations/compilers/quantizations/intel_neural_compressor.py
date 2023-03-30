@@ -60,8 +60,7 @@ def _prepare_mixed_precision_config(model: Any, tmp_dir: str):
 def _get_dataloader(input_data: DataManager):
     bs = input_data[0][0][0].shape[0]
     ds = PytorchDataset(input_data, has_labels=True)
-    dl = DataLoader(ds, bs)
-    return dl
+    return DataLoader(ds, bs)
 
 
 def _quantize_static(model: Module, input_data: DataManager) -> GraphModule:

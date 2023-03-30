@@ -67,15 +67,13 @@ class SyntheticDataBuffer(Dataset):
         number_of_triplets = len(list(Path(self.save_dir).glob("*.pt"))) // 2
         if number_of_triplets < n_data:
             self.len_data = number_of_triplets
-            for i, (output_tensor, list_of_triplets) in enumerate(
-                generate_synthetic_data(
+            for output_tensor, list_of_triplets in generate_synthetic_data(
                     tensor_size,
                     n_data - number_of_triplets,
                     limit_rank,
                     prob_distr,
                     random_seed,
-                )
-            ):
+                ):
                 torch.save(
                     output_tensor,
                     os.path.join(
@@ -356,24 +354,22 @@ class TensorGameDataset(Dataset):
             return self.synthetic_data_buffer[
                 self.synth_idx[self.synth_bool[:idx].sum()]
             ]
-        else:
-            if self.pct_best_game > 0 and self.best_game_idx is not None:
-                if idx - self.synth_bool[:idx].sum() < len(self.best_game_idx):
-                    return self.best_game_data_buffer[
-                        self.best_game_idx[idx - self.synth_bool[:idx].sum()]
-                    ]
-                else:
-                    return self.game_data_buffer[
-                        self.game_idx[
-                            idx
-                            - self.synth_bool[:idx].sum()
-                            - len(self.best_game_idx)
-                        ]
-                    ]
-            else:
-                return self.game_data_buffer[
-                    self.game_idx[idx - self.synth_bool[:idx].sum()]
+        if self.pct_best_game > 0 and self.best_game_idx is not None:
+            return (
+                self.best_game_data_buffer[
+                    self.best_game_idx[idx - self.synth_bool[:idx].sum()]
                 ]
+                if idx - self.synth_bool[:idx].sum() < len(self.best_game_idx)
+                else self.game_data_buffer[
+                    self.game_idx[
+                        idx - self.synth_bool[:idx].sum() - len(self.best_game_idx)
+                    ]
+                ]
+            )
+        else:
+            return self.game_data_buffer[
+                self.game_idx[idx - self.synth_bool[:idx].sum()]
+            ]
 
     def __len__(self):
         return self.len_data

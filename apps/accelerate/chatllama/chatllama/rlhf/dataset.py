@@ -43,7 +43,7 @@ class BaseDataset:
         """
 
         # define the sorting function
-        if only_input is True:
+        if only_input:
 
             def sort_fun(x):
                 return len(x["user_input"])
@@ -61,7 +61,7 @@ class BaseDataset:
         )
 
         # shuffle
-        if shuffle is True:
+        if shuffle:
             conversations = (
                 conversations[:10]
                 + np.random.choice(
@@ -269,18 +269,18 @@ class StanfordNLPSHPDataset(BaseDataset):
         conversations = []
 
         # loop over the dataset
-        for i, d in enumerate(data):
-            if d["score_A"] > d["score_B"]:
-                response = d["human_ref_A"]
-            else:
-                response = d["human_ref_B"]
-
+        for d in data:
+            response = (
+                d["human_ref_A"]
+                if d["score_A"] > d["score_B"]
+                else d["human_ref_B"]
+            )
             # compose user_input template
             user_input = d["history"].rstrip("\n")
             user_input = "Human: " + d["history"] + "\n\n##\n\n"
 
             # compose completion template
-            completion = "Assistant: " + response
+            completion = f"Assistant: {response}"
             conv = {
                 "user_input": user_input,
                 "completion": completion,
@@ -360,21 +360,21 @@ class AnthropicRLHF(BaseDataset):
         """
 
         conversations = []
-        for _, d in enumerate(data):
+        for d in data:
             current_conv = d["chosen"]
             split_answer = current_conv.split("Assistant:")
 
             # take all the list element in split_answer except the last one
             # and joing them with "Assistant:" in a unique string
             previous_convers = split_answer[0]
-            for i, s in enumerate(split_answer[1:-1]):
-                previous_convers += "Assistant:" + s
+            for s in split_answer[1:-1]:
+                previous_convers += f"Assistant:{s}"
 
             # remove the last characters if they are "\n" from the previous
             # conversation
             previous_convers = previous_convers.rstrip("\n")
             user_input = previous_convers + "\n\n##\n\n"
-            completion = "Assistant: " + split_answer[-1]
+            completion = f"Assistant: {split_answer[-1]}"
 
             conv = {
                 "user_input": user_input,

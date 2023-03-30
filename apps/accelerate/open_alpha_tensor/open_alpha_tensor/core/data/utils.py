@@ -109,10 +109,7 @@ def map_action_to_triplet(
     # recreating u, v and w. The token is a number between 0 and n_logits.
     action_shape = action_tensor.shape
     action_tensor = action_tensor.reshape(-1)
-    if add_bias:
-        bias = cardinality // 2
-    else:
-        bias = 0
+    bias = cardinality // 2 if add_bias else 0
     triplets = torch.stack(
         [
             _single_action_to_triplet(

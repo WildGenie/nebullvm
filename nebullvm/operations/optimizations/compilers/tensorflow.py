@@ -135,8 +135,7 @@ class TFLiteBackendCompiler(Compiler):
         model: tf.Module,
     ):
         converter = tf.lite.TFLiteConverter.from_keras_model(model)
-        tflite_model = converter.convert()
-        return tflite_model
+        return converter.convert()
 
     @staticmethod
     def _quantize_model(

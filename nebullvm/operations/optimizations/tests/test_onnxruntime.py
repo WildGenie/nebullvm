@@ -136,10 +136,8 @@ def test_onnxruntime(
 
         res_loaded = loaded_model(*inputs_example)
         assert all(
-            [
-                torch.allclose(res_tensor, res_loaded_tensor)
-                for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
-            ]
+            torch.allclose(res_tensor, res_loaded_tensor)
+            for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
         )
 
         # Test validity of the model
@@ -168,10 +166,8 @@ def test_onnxruntime(
             with torch.inference_mode():
                 res_orig = tuple(model(*inputs_example))
             assert all(
-                [
-                    torch.allclose(res_tensor, res_orig_tensor, rtol=2e-01)
-                    for (res_tensor, res_orig_tensor) in zip(res, res_orig)
-                ]
+                torch.allclose(res_tensor, res_orig_tensor, rtol=2e-01)
+                for (res_tensor, res_orig_tensor) in zip(res, res_orig)
             )
 
 
@@ -295,10 +291,8 @@ def test_onnxruntime_quantization(
 
         res_loaded = loaded_model(*inputs_example)
         assert all(
-            [
-                torch.allclose(res_tensor, res_loaded_tensor)
-                for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
-            ]
+            torch.allclose(res_tensor, res_loaded_tensor)
+            for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
         )
 
         # Test validity of the model
@@ -327,10 +321,8 @@ def test_onnxruntime_quantization(
             with torch.inference_mode():
                 res_orig = tuple(model(*inputs_example))
             assert all(
-                [
-                    torch.allclose(res_tensor, res_orig_tensor, rtol=2e-01)
-                    for (res_tensor, res_orig_tensor) in zip(res, res_orig)
-                ]
+                torch.allclose(res_tensor, res_orig_tensor, rtol=2e-01)
+                for (res_tensor, res_orig_tensor) in zip(res, res_orig)
             )
 
 
@@ -458,10 +450,8 @@ def test_onnxruntime_half(
 
         res_loaded = loaded_model(*inputs_example)
         assert all(
-            [
-                torch.allclose(res_tensor, res_loaded_tensor)
-                for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
-            ]
+            torch.allclose(res_tensor, res_loaded_tensor)
+            for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
         )
 
         # Test validity of the model
@@ -490,10 +480,6 @@ def test_onnxruntime_half(
             with torch.inference_mode():
                 res_orig = tuple(model(*inputs_example))
             assert all(
-                [
-                    torch.allclose(
-                        res_tensor.float(), res_orig_tensor, rtol=1e-01
-                    )
-                    for (res_tensor, res_orig_tensor) in zip(res, res_orig)
-                ]
+                torch.allclose(res_tensor.float(), res_orig_tensor, rtol=1e-01)
+                for (res_tensor, res_orig_tensor) in zip(res, res_orig)
             )

@@ -147,8 +147,8 @@ class OpenVINOBuildInferenceLearner(BuildInferenceLearner):
         self.inference_learner = OPENVINO_INFERENCE_LEARNERS[
             source_dl_framework
         ].from_model_name(
-            model_name=model + ".xml",
-            model_weights=model + ".bin",
+            model_name=f"{model}.xml",
+            model_weights=f"{model}.bin",
             input_tfms=input_tfms,
             network_parameters=model_params,
             device=self.device,
@@ -233,7 +233,7 @@ class PyTorchApacheTVMBuildInferenceLearner(BuildInferenceLearner):
             if self.device.type is DeviceType.GPU
             else "llvm"
         )
-        dev = tvm.device(str(target_device), 0)
+        dev = tvm.device(target_device, 0)
 
         input_names = [
             f"input_{i}" for i in range(len(model_params.input_infos))
@@ -268,7 +268,7 @@ class ONNXApacheTVMBuildInferenceLearner(BuildInferenceLearner):
             if self.device.type is DeviceType.GPU
             else "llvm"
         )
-        dev = tvm.device(str(target_device), 0)
+        dev = tvm.device(target_device, 0)
 
         input_names = (
             get_input_names(model_orig)

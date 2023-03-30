@@ -34,7 +34,7 @@ def test_torch_huggingface_ort_input_text():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         tokenizer_args=dict(
             add_special_tokens=True,
             return_attention_mask=True,
@@ -113,7 +113,7 @@ def test_torch_huggingface_ort_input_tensors():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         dynamic_info=dynamic_info,
     )
 
@@ -177,7 +177,7 @@ def test_torch_huggingface_torchscript_input_tensors():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "torchscript"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         dynamic_info=dynamic_info,
     )
 
@@ -220,7 +220,7 @@ def test_tensorflow_huggingface_ort_input_text_np():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         tokenizer_args=dict(
             add_special_tokens=True,
             return_attention_mask=True,
@@ -286,7 +286,7 @@ def test_tensorflow_huggingface_ort_input_tensors_np():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         dynamic_info=dynamic_info,
     )
 
@@ -348,7 +348,7 @@ def test_tensorflow_huggingface_ort_input_text_tf():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         tokenizer_args=dict(
             add_special_tokens=True,
             return_attention_mask=True,
@@ -414,7 +414,7 @@ def test_tensorflow_huggingface_ort_input_tensors_tf():
         ignore_compilers=[
             compiler for compiler in COMPILER_LIST if compiler != "onnxruntime"
         ],
-        ignore_compressors=[compressor for compressor in COMPRESSOR_LIST],
+        ignore_compressors=list(COMPRESSOR_LIST),
         dynamic_info=dynamic_info,
     )
 

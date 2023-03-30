@@ -94,7 +94,7 @@ class NeuralCompressorInferenceLearner(BaseInferenceLearner, ABC):
         Returns:
             DeepSparseInferenceLearner: The optimized model.
         """
-        if len(kwargs) > 0:
+        if kwargs:
             logger.warning(
                 f"No extra keywords expected for the load method. "
                 f"Got {kwargs}."

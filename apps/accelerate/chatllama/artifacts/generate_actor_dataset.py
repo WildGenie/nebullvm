@@ -15,7 +15,7 @@ CONVERSATION_LENGTH = 20
 def create_conversation(human_agent: LLMChain, bot_agent: LLMChain):
     conversation = []
     chatbot_output = ""
-    for i in range(CONVERSATION_LENGTH):
+    for _ in range(CONVERSATION_LENGTH):
         # Human agent goes first
         human_output = human_agent.run(chatbot_input=chatbot_output)
         conversation.append(f"Human: {human_output}")

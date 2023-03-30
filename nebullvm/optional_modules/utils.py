@@ -74,15 +74,14 @@ def _onnxmltools_is_available():
     try:
         import onnxmltools  # noqa F401
 
-        if not check_module_version(onnxmltools, min_version="1.11.0"):
-            logger.warning(
-                "onnxmltools module version must be >= 1.11.0. "
-                "Please update it if you want to use the ONNX API "
-                "or the ONNX pipeline for PyTorch and Tensorflow."
-            )
-            return False
-        else:
+        if check_module_version(onnxmltools, min_version="1.11.0"):
             return True
+        logger.warning(
+            "onnxmltools module version must be >= 1.11.0. "
+            "Please update it if you want to use the ONNX API "
+            "or the ONNX pipeline for PyTorch and Tensorflow."
+        )
+        return False
     except ImportError:
         return False
 
@@ -132,21 +131,23 @@ def check_dependencies(device: Device):
     elif not _onnxmltools_is_available():
         missing_dependencies.append("onnxmltools")
     if device.type is DeviceType.GPU:
-        if not tensorrt_is_available():
-            missing_suggested_compilers.append("tensorrt")
-        else:
+        if tensorrt_is_available():
             if not _onnxsim_is_available():
                 missing_dependencies.append("onnxsim")
             elif not _polygraphy_is_available():
                 missing_dependencies.append("polygraphy")
-    if device.type is DeviceType.CPU:
-        if not openvino_is_available() and "intel" in processor:
-            missing_suggested_compilers.append("openvino")
+        else:
+            missing_suggested_compilers.append("tensorrt")
+    if (
+        device.type is DeviceType.CPU
+        and not openvino_is_available()
+        and "intel" in processor
+    ):
+        missing_suggested_compilers.append("openvino")
 
     if torch_is_available():
-        if not tvm_is_available():
-            if "tvm" not in missing_optional_compilers:
-                missing_optional_compilers.append("tvm")
+        if not tvm_is_available() and "tvm" not in missing_optional_compilers:
+            missing_optional_compilers.append("tvm")
         if not bladedisc_is_available():
             missing_optional_compilers.append("torch_blade")
 
@@ -171,7 +172,7 @@ def check_dependencies(device: Device):
         missing_frameworks.append("tensorflow")
 
     missing_frameworks = ", ".join(missing_frameworks)
-    if len(missing_frameworks) > 0:
+    if missing_frameworks != "":
         logger.warning(
             f"Missing Frameworks: {missing_frameworks}.\n "
             f"Please install them "
@@ -179,7 +180,7 @@ def check_dependencies(device: Device):
         )
 
     missing_suggested_compilers = ", ".join(missing_suggested_compilers)
-    if len(missing_suggested_compilers) > 0:
+    if missing_suggested_compilers != "":
         logger.warning(
             f"Missing Compilers: {missing_suggested_compilers}.\n "
             f"Please install them "
@@ -187,7 +188,7 @@ def check_dependencies(device: Device):
         )
 
     missing_dependencies = ", ".join(missing_dependencies)
-    if len(missing_dependencies) > 0:
+    if missing_dependencies != "":
         logger.warning(
             f"Missing Dependencies: {missing_dependencies}.\n "
             f"Without them, some compilers "

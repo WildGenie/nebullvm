@@ -90,10 +90,10 @@ class ApacheTVMInferenceLearner(BaseInferenceLearner, ABC):
             )
 
     def _has_half_precision_transformation(self):
-        for tfm in self.input_tfms.to_list():
-            if isinstance(tfm, HalfPrecisionTransformation):
-                return True
-        return False
+        return any(
+            isinstance(tfm, HalfPrecisionTransformation)
+            for tfm in self.input_tfms.to_list()
+        )
 
     def _predict_array(
         self, input_arrays: Generator[np.ndarray, None, None]
@@ -102,7 +102,7 @@ class ApacheTVMInferenceLearner(BaseInferenceLearner, ABC):
             self.graph_executor_module.set_input(name, array)
         self.graph_executor_module.run()
 
-        tvm_outputs = (
+        return (
             self.graph_executor_module.get_output(
                 i,
                 tvm.nd.empty(
@@ -112,11 +112,8 @@ class ApacheTVMInferenceLearner(BaseInferenceLearner, ABC):
                     else "float32",
                 ),
             ).numpy()
-            for i, output_size in enumerate(
-                self.network_parameters.output_sizes
-            )
+            for i, output_size in enumerate(self.network_parameters.output_sizes)
         )
-        return tvm_outputs
 
     def free_gpu_memory(self):
         # TODO: check if tvm needs to release GPU
@@ -205,7 +202,7 @@ class ApacheTVMInferenceLearner(BaseInferenceLearner, ABC):
                 get the prediction.
             input_data (DataManager, optional): User defined data.
         """
-        dev = tvm.device(str(target_device), 0)
+        dev = tvm.device(target_device, 0)
         graph_executor_module = GraphModule(lib["default"](dev))
         return cls(
             input_tfms=input_tfms,
@@ -330,9 +327,7 @@ class PytorchApacheTVMInferenceLearner(
 
     @staticmethod
     def _convert_device(device: Any):
-        if isinstance(device, int):
-            return "cpu"
-        return device
+        return "cpu" if isinstance(device, int) else device
 
 
 class TensorflowApacheTVMInferenceLearner(
@@ -427,7 +422,7 @@ class NumpyApacheTVMInferenceLearner(
                 1 to 1 mapping. In fact the output tensors are produced as the
                 multiple-output of the model given a (multi-) tensor input.
         """
-        input_arrays = (input_tensor for input_tensor in input_tensors)
+        input_arrays = iter(input_tensors)
         input_shapes = (
             [tuple(input_tensor.shape) for input_tensor in input_tensors]
             if self.network_parameters.dynamic_info is not None

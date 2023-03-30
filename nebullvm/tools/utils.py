@@ -42,10 +42,7 @@ from nebullvm.tools.tf import (
 
 
 def ifnone(target, new_value):
-    if target is None:
-        return new_value
-    else:
-        return target
+    return new_value if target is None else target
 
 
 def inspect_dynamic_size(
@@ -56,10 +53,7 @@ def inspect_dynamic_size(
     for idx, (tensor, size) in enumerate(zip(tensors, sizes)):
         for idy, (j, k) in enumerate(zip(tensor.shape, size)):
             if j != k:
-                if idy == 0:
-                    tag = "batch_size"
-                else:
-                    tag = f"val_{j}_{k}"
+                tag = "batch_size" if idy == 0 else f"val_{j}_{k}"
                 axis_list[idx][idy] = tag
 
 
@@ -76,22 +70,18 @@ def check_module_version(
 ) -> bool:
     installed_version = module.__version__
 
-    if min_version is not None:
-        if version.parse(installed_version) < version.parse(min_version):
-            return False
+    if min_version is not None and version.parse(
+        installed_version
+    ) < version.parse(min_version):
+        return False
 
-    if max_version is not None:
-        if version.parse(installed_version) > version.parse(max_version):
-            return False
-
-    return True
+    return max_version is None or version.parse(
+        installed_version
+    ) <= version.parse(max_version)
 
 
 def is_python_version_3_10():
-    return (
-        str(sys.version_info.major) + "." + str(sys.version_info.minor)
-        == "3.10"
-    )
+    return f"{str(sys.version_info.major)}.{str(sys.version_info.minor)}" == "3.10"
 
 
 def get_dl_framework(model: Any):
@@ -185,7 +175,7 @@ def extract_info_from_data(
     output_infos = OUTPUT_INFO_COMPUTATION_DICT[dl_framework](
         model, input_data[0][0], device
     )
-    model_params = ModelParams(
+    return ModelParams(
         batch_size=batch_size,
         input_infos=[
             {"size": size, "dtype": dtype}
@@ -195,7 +185,6 @@ def extract_info_from_data(
         output_types=[info[1] for info in output_infos],
         dynamic_info=dynamic_info,
     )
-    return model_params
 
 
 def is_huggingface_data(data_sample: Any) -> bool:
@@ -219,29 +208,29 @@ def is_dict_type(data_sample: Any):
 
 def check_device(device: Optional[str]) -> Device:
     if device is None:
-        if gpu_is_available():
-            device = Device(DeviceType.GPU)
+        device = (
+            Device(DeviceType.GPU)
+            if gpu_is_available()
+            else Device(DeviceType.CPU)
+        )
+    elif any(x in device.lower() for x in ["cuda", "gpu"]):
+        device_info = device.split(":")
+        if len(device_info) == 2 and device_info[1].isdigit():
+            idx = int(device_info[1])
         else:
+            idx = 0
+        if not gpu_is_available():
+            logger.warning(
+                "Selected GPU device but no available GPU found on this "
+                "platform. CPU will be used instead. Please make sure "
+                "that the gpu is installed and can be used by your "
+                "framework."
+            )
             device = Device(DeviceType.CPU)
+        else:
+            device = Device(DeviceType.GPU, idx=idx)
     else:
-        if any(x in device.lower() for x in ["cuda", "gpu"]):
-            device_info = device.split(":")
-            if len(device_info) == 2 and device_info[1].isdigit():
-                idx = int(device_info[1])
-            else:
-                idx = 0
-            if not gpu_is_available():
-                logger.warning(
-                    "Selected GPU device but no available GPU found on this "
-                    "platform. CPU will be used instead. Please make sure "
-                    "that the gpu is installed and can be used by your "
-                    "framework."
-                )
-                device = Device(DeviceType.CPU)
-            else:
-                device = Device(DeviceType.GPU, idx=idx)
-        else:
-            device = Device(DeviceType.CPU)
+        device = Device(DeviceType.CPU)
 
     return device
 

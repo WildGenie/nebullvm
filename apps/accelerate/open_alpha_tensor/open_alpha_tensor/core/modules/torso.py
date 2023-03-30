@@ -50,10 +50,7 @@ class TorsoModel(torch.nn.Module):
         # out_size = c
         super(TorsoModel, self).__init__()
         self.linears_1 = torch.nn.ModuleList(
-            [
-                torch.nn.Linear(scalars_size, input_size * input_size)
-                for _ in range(3)
-            ]
+            [torch.nn.Linear(scalars_size, input_size**2) for _ in range(3)]
         )
         self.linears_2 = torch.nn.ModuleList(
             [

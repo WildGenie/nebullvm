@@ -145,10 +145,8 @@ def test_openvino(
 
         res_loaded = loaded_model(*inputs_example)
         assert all(
-            [
-                torch.allclose(res_tensor, res_loaded_tensor)
-                for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
-            ]
+            torch.allclose(res_tensor, res_loaded_tensor)
+            for (res_tensor, res_loaded_tensor) in zip(res, res_loaded)
         )
 
         # Test validity of the model
@@ -171,10 +169,6 @@ def test_openvino(
 
             res_orig = tuple(model(*inputs_example))
             assert all(
-                [
-                    torch.allclose(
-                        res_tensor.float(), res_orig_tensor, rtol=2e-01
-                    )
-                    for (res_tensor, res_orig_tensor) in zip(res, res_orig)
-                ]
+                torch.allclose(res_tensor.float(), res_orig_tensor, rtol=2e-01)
+                for (res_tensor, res_orig_tensor) in zip(res, res_orig)
             )

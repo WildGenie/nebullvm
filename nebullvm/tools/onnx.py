@@ -24,9 +24,8 @@ def convert_to_numpy(tensor: Any):
         tensor = tensor.numpy()
     elif isinstance(tensor, int):
         tensor = np.array([tensor])
-    else:
-        if not isinstance(tensor, np.ndarray):
-            raise TypeError(f"Unsupported data type: {type(tensor)}")
+    elif not isinstance(tensor, np.ndarray):
+        raise TypeError(f"Unsupported data type: {type(tensor)}")
     return tensor
 
 
@@ -43,14 +42,12 @@ def convert_to_target_framework(
 
 def get_input_names(onnx_model: str):
     model = onnx.load(onnx_model)
-    input_all = [node.name for node in model.graph.input]
-    return input_all
+    return [node.name for node in model.graph.input]
 
 
 def get_output_names(onnx_model: str):
     model = onnx.load(onnx_model)
-    output_all = [node.name for node in model.graph.output]
-    return output_all
+    return [node.name for node in model.graph.output]
 
 
 def run_onnx_model(
@@ -72,10 +69,7 @@ def run_onnx_model(
         if device.type is DeviceType.GPU
         else ONNX_PROVIDERS["cpu"],
     )
-    inputs = {
-        name: array
-        for name, array in zip(get_input_names(onnx_model), input_tensors)
-    }
+    inputs = dict(zip(get_input_names(onnx_model), input_tensors))
     res = model.run(
         output_names=get_output_names(onnx_model), input_feed=inputs
     )
@@ -125,7 +119,7 @@ def extract_info_from_np_data(
 
     input_row = data[0][0]
     batch_size = int(input_row[0].shape[0])
-    if not all([input_row[0].shape[0] == x.shape[0] for x in input_row]):
+    if any(input_row[0].shape[0] != x.shape[0] for x in input_row):
         logger.warning("Detected not consistent batch size in the inputs.")
 
     input_sizes = [tuple(x.shape) for x in input_row]
@@ -150,11 +144,10 @@ def get_output_info_onnx(
     onnx_model: str, input_tensors: List[np.ndarray], device
 ) -> List[Tuple[Tuple[int, ...], DataType]]:
     res = run_onnx_model(onnx_model, input_tensors, device)
-    sizes = [
+    return [
         (tuple(output.shape), DataType.from_framework_format(output.dtype))
         for output in res
     ]
-    return sizes
 
 
 def create_model_inputs_onnx(input_infos: List[InputInfo]) -> List[np.ndarray]:

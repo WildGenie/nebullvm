@@ -146,7 +146,7 @@ def extract_info_from_torch_data(
     )
     input_row = input_data[0]
     batch_size = int(input_row[0].shape[0])
-    if not all([input_row[0].shape[0] == x.shape[0] for x in input_row]):
+    if any(input_row[0].shape[0] != x.shape[0] for x in input_row):
         logger.warning("Detected not consistent batch size in the inputs.")
 
     input_sizes = [tuple(x.shape) for x in input_row]

@@ -16,10 +16,7 @@ class MNISTDataLoaderOperation(Operation):
         self.test_data = None
 
     def get_result(self) -> Any:
-        if self.train_data is not None:
-            return self.train_data, self.test_data
-        else:
-            return None
+        return None if self.train_data is None else (self.train_data, self.test_data)
 
     def execute(self, batch_size: int, shuffle: bool):
         train_loader = torch.utils.data.DataLoader(
@@ -107,9 +104,7 @@ VOCABULARY = {
 
 def tokenize(fable, max_len=100):
     tokenized_fable = [
-        VOCABULARY[char]
-        for i, char in enumerate(fable.lower())
-        if char in VOCABULARY
+        VOCABULARY[char] for char in fable.lower() if char in VOCABULARY
     ]
     return tokenized_fable[:max_len]
 
@@ -150,10 +145,7 @@ class AesopFablesDataLoaderOperation(Operation):
         self.test_data = None
 
     def get_result(self) -> Any:
-        if self.train_data is not None:
-            return self.train_data, self.test_data
-        else:
-            return None
+        return None if self.train_data is None else (self.train_data, self.test_data)
 
     def execute(self, batch_size: int, shuffle: bool):
         train_loader, test_loader = get_dataloader(

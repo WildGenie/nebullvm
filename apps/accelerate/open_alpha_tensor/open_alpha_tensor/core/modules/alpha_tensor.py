@@ -84,9 +84,8 @@ class AlphaTensorModel(torch.nn.Module):
     ):
         if g_action is None:
             return self._eval_forward(x, s)
-        else:
-            assert g_value is not None
-            return self._train_forward(x, s, g_action, g_value)
+        assert g_value is not None
+        return self._train_forward(x, s, g_action, g_value)
 
     @property
     def n_logits(self):

@@ -121,7 +121,7 @@ def optimize_model(
     root_op = SpeedsterRootOp()
     device = check_device(device)
 
-    disable_log = True if not debug_mode_enabled() else False
+    disable_log = not debug_mode_enabled()
 
     with LoggingContext(logging.getLogger(), disabled=disable_log):
         root_op.to(device).execute(

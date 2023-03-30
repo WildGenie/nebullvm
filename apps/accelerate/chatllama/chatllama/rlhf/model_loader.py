@@ -32,8 +32,7 @@ class ModelLoader:
         model_folder, model_name, path = ModelLoader.get_model_path(
             config, is_checkpoint=True
         )
-        stat_path = os.path.join(model_folder, "training_stats.json")
-        return stat_path
+        return os.path.join(model_folder, "training_stats.json")
 
     @staticmethod
     def look_for_last_checkpoint(
@@ -49,16 +48,13 @@ class ModelLoader:
         """
         # remove .pt to model name
         model_name = model_name.split(".")[0]
-        checkpoints = [
+        if checkpoints := [
             f for f in os.listdir(model_folder) if f.startswith(model_name)
-        ]
-        if len(checkpoints) == 0:
-            return None
-        else:
+        ]:
             checkpoints = sorted(checkpoints)
-            # get last checkpoint
-            last_checkpoint = checkpoints[-1]
-            return last_checkpoint
+            return checkpoints[-1]
+        else:
+            return None
 
     @staticmethod
     def look_for_checkpoint_by_name(
@@ -75,10 +71,7 @@ class ModelLoader:
         """
         # look for a file named checkpoint_name in the model folder
         path = os.path.join(model_folder, checkpoint_name)
-        if os.path.exists(path):
-            return checkpoint_name
-        else:
-            return None
+        return checkpoint_name if os.path.exists(path) else None
 
     @staticmethod
     def get_checkpoint_name(config: ConfigType) -> str:
@@ -89,7 +82,7 @@ class ModelLoader:
 
     @staticmethod
     def get_base_model_folder_from_config(config: ConfigType) -> str:
-        if isinstance(config, ConfigActor) or isinstance(config, ConfigReward):
+        if isinstance(config, (ConfigActor, ConfigReward)):
             return config.model_folder
         elif isinstance(config, Config):
             return config.actor.model_folder
@@ -103,10 +96,7 @@ class ModelLoader:
         if isinstance(config, ConfigReward):
             # here use ad-hoc flag from config to distinguish between
             #  reward and critic
-            if config.is_reward:
-                return "reward"
-            else:
-                return "critic"
+            return "reward" if config.is_reward else "critic"
         elif isinstance(config, ConfigActor):
             return "actor"
         elif isinstance(config, Config):
@@ -117,9 +107,7 @@ class ModelLoader:
         model_name = None
         if isinstance(config, Config):
             model_name = config.actor.model
-        elif isinstance(config, ConfigReward) or isinstance(
-            config, ConfigActor
-        ):
+        elif isinstance(config, (ConfigReward, ConfigActor)):
             model_name = config.model
         if model_name in hf_models:
             return os.path.split(model_name)[-1]
@@ -142,18 +130,18 @@ class ModelLoader:
 
         # remove .pt to model name
         model_name = model_name.split(".")[0]
-        checkpoints = [
+        if checkpoints := [
             f for f in os.listdir(model_folder) if f.startswith(model_name)
-        ]
-        if len(checkpoints) == 0:
-            return
-        else:
+        ]:
             checkpoints = sorted(checkpoints)
             # check if the number of checkpoint is greater than 5
             if len(checkpoints) > n_ckp_to_keep:
                 for c in checkpoints[:-n_ckp_to_keep]:
                     checkpoint_path = os.path.join(model_folder, c)
                     os.remove(checkpoint_path)
+
+        else:
+            return
 
     @staticmethod
     def get_model_path(
@@ -295,68 +283,66 @@ class ModelLoader:
                 path = os.path.join(model_folder, checkpoint)
                 # Get the epoch number from the checkpoint name
 
-        if path is not None:
-            if os.path.exists(path) is False:
-                path = None
+        if path is not None and os.path.exists(path) is False:
+            path = None
 
         if path is None:
             if is_checkpoint:
                 checkpoint_name = ModelLoader.get_checkpoint_name(config)
-                if checkpoint_name is not None:
-                    print(
-                        f"No checkpoint found at {model_folder} "
-                        f"with name {config.checkpoint_name}"
-                    )
-                else:
+                if checkpoint_name is None:
                     print(
                         f"No previous checkpoint found at "
                         f"{model_folder} for {model_name}"
+                    )
+                else:
+                    print(
+                        f"No checkpoint found at {model_folder} "
+                        f"with name {config.checkpoint_name}"
                     )
             else:
                 print(
                     f"No previous model found at "
                     f"{model_folder} for model {model_name}"
                 )
-        else:
-            if is_checkpoint:
-                # the name is modelname_epoch_00000001_step_00000001.pt
-                # or modelname_epoch_00000001.pt
-                if "_step_" in path:
-                    epoch = int(path.split("_epoch_")[-1].split("_")[0])
-                    step = int(path.split("_step_")[-1].split(".")[0])
-                    print(
-                        f"Found checkpoint for epoch {epoch + 1},"
-                        f" step {step + 1}..."
-                    )
-                else:
-                    epoch = int(path.split("_epoch_")[-1].split(".")[0])
-                    print(f"Found checkpoint for epoch {epoch + 1} ...")
+        elif is_checkpoint:
+            # the name is modelname_epoch_00000001_step_00000001.pt
+            # or modelname_epoch_00000001.pt
+            if "_step_" in path:
+                epoch = int(path.split("_epoch_")[-1].split("_")[0])
+                step = int(path.split("_step_")[-1].split(".")[0])
+                print(
+                    f"Found checkpoint for epoch {epoch + 1},"
+                    f" step {step + 1}..."
+                )
             else:
-                print(f"Found model at {path}")
+                epoch = int(path.split("_epoch_")[-1].split(".")[0])
+                print(f"Found checkpoint for epoch {epoch + 1} ...")
+        else:
+            print(f"Found model at {path}")
         return path
 
-    def init_critic_from_reward(config: ConfigCritic) -> None:
+    def init_critic_from_reward(self) -> None:
         """Method to initialize the critic from the reward model.
         If the critic folder is empty
         """
 
-        if config.is_reward is True:
+        if self.is_reward is True:
             raise ValueError(
                 "The config should work for the Critic model,"
                 "but the config seems to be for the Reward model"
             )
 
         # check that the critic folder is empty
-        path = ModelLoader.check_model_path(config)
-        _, _, critic_path = ModelLoader.get_model_path(config)
+        path = ModelLoader.check_model_path(self)
+        _, _, critic_path = ModelLoader.get_model_path(self)
         if path is None:
             print("Initializing Critic from Reward model...")
-            config.is_reward = True
-            path = ModelLoader.check_model_path(config)
+            self.is_reward = True
+            path = ModelLoader.check_model_path(self)
             if path is not None:
-                _, _, reward_path = ModelLoader.get_model_path(config)
+                _, _, reward_path = ModelLoader.get_model_path(self)
                 # copy the file in reward_path to critic_path
                 shutil.copy(reward_path, critic_path)
             else:
                 print("Critic Model remains uninitialized")
-        config.is_reward = False
+        self.is_reward = False

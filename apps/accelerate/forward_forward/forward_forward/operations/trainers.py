@@ -115,7 +115,7 @@ class RecurrentForwardForwardTrainer(BaseForwardForwardTrainer):
         for epoch in range(epochs):
             accumulated_goodness = None
             model.train()
-            for j, (data, target) in enumerate(self.train_data):
+            for data, target in self.train_data:
                 # TODO: THE IMAGE SHAPE SHOULD NOT BE DEFINED HERE
                 data = data.to(device).reshape(-1, 28 * 28)
                 target = torch.functional.F.one_hot(

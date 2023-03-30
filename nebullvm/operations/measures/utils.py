@@ -137,10 +137,10 @@ def compute_onnx_latency(
 
     latencies = []
     for i in range(warmup_steps):
-        inputs = {name: array for name, array in zip(input_names, xs[i])}
+        inputs = dict(zip(input_names, xs[i]))
         _ = model.run(output_names=output_names, input_feed=inputs)
     for i in range(steps):
-        inputs = {name: array for name, array in zip(input_names, xs[i])}
+        inputs = dict(zip(input_names, xs[i]))
         starting_time = time.time()
         _ = model.run(output_names=output_names, input_feed=inputs)
         latencies.append(time.time() - starting_time)

@@ -48,9 +48,8 @@ class LoadCheckPointOp(Operation):
             checkpoint_dir: The directory to load the checkpoint from.
         """
         checkpoint_dir = checkpoint_dir or BASE_CHECKPOINT_DIR
-        if (
-            Path(checkpoint_dir).exists()
-            and len(list(Path(checkpoint_dir).glob("*.pt"))) > 0
+        if Path(checkpoint_dir).exists() and list(
+            Path(checkpoint_dir).glob("*.pt")
         ):
 
             def key_func(x):

@@ -156,9 +156,7 @@ class PolicyHead(torch.nn.Module):
         )
 
     def forward(self, e: torch.Tensor, g: torch.Tensor = None):
-        if g is None:
-            return self._eval_forward(e)
-        return self._train_forward(e, g)
+        return self._eval_forward(e) if g is None else self._train_forward(e, g)
 
 
 class ValueHeadCore(torch.nn.Module):

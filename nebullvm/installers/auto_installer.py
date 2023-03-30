@@ -59,13 +59,12 @@ def select_frameworks_to_install(
             else:
                 logger.warning(f"Framework {framework} not supported")
 
-        if len(frameworks_list) == 0:
+        if not frameworks_list:
             raise ValueError("No supported frameworks selected")
 
         if isinstance(include_backends, str) and include_backends == "all":
             for framework in frameworks_list:
-                for backend in SUPPORTED_BACKENDS_DICT[framework]:
-                    frameworks_list.append(backend)
+                frameworks_list.extend(iter(SUPPORTED_BACKENDS_DICT[framework]))
         elif isinstance(include_backends, list):
             for backend in include_backends:
                 if backend not in supported_frameworks:
@@ -87,9 +86,7 @@ def select_frameworks_to_install(
     else:
         raise ValueError("Invalid frameworks list")
 
-    frameworks_list = list(set(frameworks_list))
-    frameworks_list.sort()
-
+    frameworks_list = sorted(set(frameworks_list))
     return frameworks_list
 
 
@@ -98,18 +95,16 @@ def select_compilers_to_install(
 ) -> List[str]:
     compiler_list = []
     supported_compilers = list(
-        set([item for sublist in MODULES.values() for item in sublist])
+        {item for sublist in MODULES.values() for item in sublist}
     )
     if isinstance(include_compilers, str) and include_compilers == "all":
         compiler_list = list(
-            set(
-                [
-                    item
-                    for (fr, compilers) in MODULES.items()
-                    for item in compilers
-                    if fr in framework_list
-                ]
-            )
+            {
+                item
+                for (fr, compilers) in MODULES.items()
+                for item in compilers
+                if fr in framework_list
+            }
         )
     else:
         for compiler in include_compilers:
@@ -128,9 +123,7 @@ def select_compilers_to_install(
                         f"frameworks"
                     )
 
-    compiler_list = list(set(compiler_list))
-    compiler_list.sort()
-
+    compiler_list = sorted(set(compiler_list))
     return compiler_list
 
 
@@ -194,10 +187,7 @@ def main():
         "all",
         "none",
     ]:
-        if args["extra_backends"][0] == "all":
-            backend_list = "all"
-        else:
-            backend_list = []
+        backend_list = "all" if args["extra_backends"][0] == "all" else []
     else:
         backend_list = args["extra_backends"]
 

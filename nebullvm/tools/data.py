@@ -35,12 +35,11 @@ class DataManager:
         return self
 
     def __next__(self):
-        if self._pointer < len(self):
-            data = self[self._pointer]
-            self._pointer += 1
-            return data
-        else:
+        if self._pointer >= len(self):
             raise StopIteration
+        data = self[self._pointer]
+        self._pointer += 1
+        return data
 
     def get_numpy_list(
         self, n: int = None, shuffle: bool = False, with_ys: bool = False
@@ -54,11 +53,10 @@ class DataManager:
                 tuple(convert_to_numpy(x) for x in tuple_)
                 for tuple_ in self.get_list(n, shuffle)
             ]
-        else:
-            xs, ys = self.get_list(n, shuffle, with_ys=True)
-            return [
-                tuple(convert_to_numpy(x) for x in tuple_) for tuple_ in xs
-            ], ys
+        xs, ys = self.get_list(n, shuffle, with_ys=True)
+        return [
+            tuple(convert_to_numpy(x) for x in tuple_) for tuple_ in xs
+        ], ys
 
     def get_list(
         self, n: int = None, shuffle: bool = False, with_ys: bool = False
@@ -132,9 +130,7 @@ class DataManager:
                         )
                 else:
                     warning_label = True
-                    data_manager.append(
-                        (tuple(t for t in batch[:-1]), batch[-1])
-                    )
+                    data_manager.append((tuple(batch[:-1]), batch[-1]))
             elif isinstance(batch, (torch.Tensor, tf.Tensor)):
                 data_manager.append(((batch,), None))
             else:
@@ -192,18 +188,18 @@ class PytorchDataset(Dataset):
         self.batch_size = input_data[0][0][0].shape[0]
 
     def __len__(self):
-        return sum([batch_inputs[0].shape[0] for batch_inputs, _ in self.data])
+        return sum(batch_inputs[0].shape[0] for batch_inputs, _ in self.data)
 
     def __getitem__(self, idx):
         batch_idx = int(idx / self.batch_size)
         item_idx = idx % self.batch_size
-        data = tuple([data[item_idx] for data in self.data[batch_idx][0]])
+        data = tuple(data[item_idx] for data in self.data[batch_idx][0])
 
-        if self.has_labels:
-            label = self.data[batch_idx][1]
-            if label is not None:
-                return data, self.data[batch_idx][1][item_idx]
-            else:
-                return data, torch.tensor([0])
-        else:
+        if not self.has_labels:
             return data
+        label = self.data[batch_idx][1]
+        return (
+            (data, self.data[batch_idx][1][item_idx])
+            if label is not None
+            else (data, torch.tensor([0]))
+        )

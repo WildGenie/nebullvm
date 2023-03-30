@@ -319,13 +319,9 @@ class ONNXTensorRTCompiler(TensorRTCompiler):
 
                 # Simplify model, otherwise tensor RT won't work
                 # on gpt2 and some other models.
-                simplified_model = str(model) + "_simplified"
+                simplified_model = f"{model}_simplified"
                 if not Path(simplified_model).is_file():
-                    cmd = [
-                        "onnxsim",
-                        str(model),
-                        simplified_model,
-                    ]
+                    cmd = ["onnxsim", model, simplified_model]
                     subprocess.run(cmd, stdout=subprocess.DEVNULL)
 
                 # First try with simplified model
@@ -338,10 +334,10 @@ class ONNXTensorRTCompiler(TensorRTCompiler):
                     "Original ONNX model will be used to build "
                     "TensorRT engine"
                 )
-                self.onnx_model_path = str(model)
+                self.onnx_model_path = model
             self.simplify_model = False
         elif self.onnx_model_path is None:
-            self.onnx_model_path = str(model)
+            self.onnx_model_path = model
 
         if is_diffusion:
             if quantization_type is None:
@@ -360,7 +356,7 @@ class ONNXTensorRTCompiler(TensorRTCompiler):
         if self.simplify_model and is_diffusion:
             optimized_model = str(Path(model).parent / "model_opt.onnx")
             unet = UNet(hf_token=None)
-            opt_graph = unet.optimize(onnx.load(str(model)))
+            opt_graph = unet.optimize(onnx.load(model))
             try:
                 onnx.save(opt_graph, optimized_model)
             except Exception:
@@ -370,7 +366,7 @@ class ONNXTensorRTCompiler(TensorRTCompiler):
             self.onnx_model_path = optimized_model
             self.simplify_model = False
         elif self.onnx_model_path is None:
-            self.onnx_model_path = str(model)
+            self.onnx_model_path = model
 
         # -- Build phase --
         nvidia_logger = trt.Logger(trt.Logger.ERROR)

@@ -208,58 +208,50 @@ class Device:
             raise Exception("Invalid device string")
 
     def to_torch_format(self) -> str:
-        if self.type is DeviceType.CPU:
-            return "cpu"
-        return f"cuda:{self.idx}"
+        return "cpu" if self.type is DeviceType.CPU else f"cuda:{self.idx}"
 
     def to_tf_format(self) -> str:
-        if self.type is DeviceType.CPU:
-            return "CPU"
-        return f"GPU:{self.idx}"
+        return "CPU" if self.type is DeviceType.CPU else f"GPU:{self.idx}"
 
     def get_total_memory(self) -> int:
-        # Return total memory in bytes using nvidia-smi in bytes
         if self.type is DeviceType.CPU:
             raise Exception("CPU does not have memory")
-        else:
-            try:
-                output = (
-                    subprocess.check_output(
-                        "nvidia-smi --query-gpu=memory.total "
-                        "--format=csv,nounits,noheader",
-                        shell=True,
-                    )
-                    .decode("utf-8")
-                    .split()[self.idx]
+        try:
+            output = (
+                subprocess.check_output(
+                    "nvidia-smi --query-gpu=memory.total "
+                    "--format=csv,nounits,noheader",
+                    shell=True,
                 )
-                return int(output) * 1024 * 1024
-            except Exception:
-                raise Exception(
-                    "Unable to get total memory of device. "
-                    "Please make sure nvidia-smi is available."
-                )
+                .decode("utf-8")
+                .split()[self.idx]
+            )
+            return int(output) * 1024 * 1024
+        except Exception:
+            raise Exception(
+                "Unable to get total memory of device. "
+                "Please make sure nvidia-smi is available."
+            )
 
     def get_free_memory(self) -> int:
-        # Return free memory in bytes using nvidia-smi in bytes
         if self.type is DeviceType.CPU:
             raise Exception("CPU does not have memory")
-        else:
-            try:
-                output = (
-                    subprocess.check_output(
-                        "nvidia-smi --query-gpu=memory.free "
-                        "--format=csv,nounits,noheader",
-                        shell=True,
-                    )
-                    .decode("utf-8")
-                    .split()[self.idx]
+        try:
+            output = (
+                subprocess.check_output(
+                    "nvidia-smi --query-gpu=memory.free "
+                    "--format=csv,nounits,noheader",
+                    shell=True,
                 )
-                return int(output) * 1024 * 1024
-            except Exception:
-                raise Exception(
-                    "Unable to get free memory of device. "
-                    "Please make sure nvidia-smi is available."
-                )
+                .decode("utf-8")
+                .split()[self.idx]
+            )
+            return int(output) * 1024 * 1024
+        except Exception:
+            raise Exception(
+                "Unable to get free memory of device. "
+                "Please make sure nvidia-smi is available."
+            )
 
 
 FRAMEWORK_TO_DATA_TYPE_CONVERSION_DICT = {

@@ -88,14 +88,13 @@ SPEEDSTER_FEEDBACK_COLLECTOR = FeedbackCollector(
 
 def _convert_technique(technique: str):
     if technique == "none":  # use fp32 instead of none
-        technique = "fp32"
+        return "fp32"
     elif technique == "HALF":
-        technique = "fp16"
+        return "fp16"
     elif technique == "STATIC":
-        technique = "int8"
+        return "int8"
     else:
-        technique = "int8_dynamic"
-    return technique
+        return "int8_dynamic"
 
 
 def _get_model_len(model: Any):
@@ -133,13 +132,11 @@ class SpeedsterRootOp(Operation):
 
     def _get_conversion_op(self, dl_framework: DeepLearningFramework):
         if dl_framework == DeepLearningFramework.PYTORCH:
-            conversion_op = self.torch_conversion_op
+            return self.torch_conversion_op
         elif dl_framework == DeepLearningFramework.TENSORFLOW:
-            conversion_op = self.tensorflow_conversion_op
+            return self.tensorflow_conversion_op
         else:
-            conversion_op = self.onnx_conversion_op
-
-        return conversion_op
+            return self.onnx_conversion_op
 
     def execute(
         self,
@@ -263,12 +260,7 @@ class SpeedsterRootOp(Operation):
                     )
 
             if not isinstance(self.data, DataManager):
-                if check_input_data(self.data):
-                    if is_data_subscriptable(self.data):
-                        self.data = DataManager(self.data)
-                    else:
-                        self.data = DataManager.from_iterable(self.data)
-                else:
+                if not check_input_data(self.data):
                     raise ValueError(
                         "The provided data does not match the expected "
                         "format.\n"
@@ -281,12 +273,17 @@ class SpeedsterRootOp(Operation):
                         "depending on the framework used.\n"
                     )
 
+                if is_data_subscriptable(self.data):
+                    self.data = DataManager(self.data)
+                else:
+                    self.data = DataManager.from_iterable(self.data)
             dl_framework = get_dl_framework(self.model)
 
-            if metric_drop_ths is not None and metric_drop_ths <= 0:
-                metric_drop_ths = None
-            elif metric_drop_ths is not None and metric is None:
-                metric = "numeric_precision"
+            if metric_drop_ths is not None:
+                if metric_drop_ths <= 0:
+                    metric_drop_ths = None
+                elif metric is None:
+                    metric = "numeric_precision"
             if isinstance(metric, str):
                 metric = QUANTIZATION_METRIC_MAP.get(metric)
 
@@ -412,9 +409,9 @@ class SpeedsterRootOp(Operation):
                 # Normal models have batch size B, diffusion models
                 # have batch size 2B
                 batch_size = (
-                    model_params.batch_size
-                    if not is_diffusion
-                    else model_params.batch_size / 2
+                    model_params.batch_size / 2
+                    if is_diffusion
+                    else model_params.batch_size
                 )
 
                 table = [

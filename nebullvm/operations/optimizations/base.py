@@ -184,19 +184,16 @@ class Optimizer(Operation, abc.ABC):
         is_diffusion: bool = False,
     ):
 
+        q_types = [
+            None,
+        ]
         if metric_drop_ths is not None:
-            q_types = [
-                None,
-            ]
             if metric_drop_ths > 0:
                 q_types.append(QuantizationType.HALF)
             if metric_drop_ths > ACTIVATION_METRIC_DROP_THS:
                 q_types.append(QuantizationType.DYNAMIC)
                 if input_data is not None:
                     q_types.append(QuantizationType.STATIC)
-        else:
-            q_types = [None]
-
         optimization_info = []
         for compiler, compiler_op, build_inference_learner_op in zip(
             self.compiler_ops.keys(),

@@ -175,7 +175,11 @@ class ConversationLog:
                 <current_iteration>
         """
         for i, c in enumerate(self.conversation):
-            if current_iteration is None:
+            if (
+                current_iteration is not None
+                and current_iteration == c["learn_counter"]
+                or current_iteration is None
+            ):
                 print(
                     f"##########################################\n"
                     f"Conversation {i} at learn_counter "
@@ -185,14 +189,3 @@ class ConversationLog:
                     f"## Model Output:\n\n{c['model_output']}\n\n"
                     f"## Reward: {c['reward']}\n\n"
                 )
-            else:
-                if current_iteration == c["learn_counter"]:
-                    print(
-                        f"##########################################\n"
-                        f"Conversation {i} at learn_counter "
-                        f"{c['learn_counter']}\n"
-                        f"##########################################\n"
-                        f"## User Input:\n\n{c['user_input']}\n\n"
-                        f"## Model Output:\n\n{c['model_output']}\n\n"
-                        f"## Reward: {c['reward']}\n\n"
-                    )

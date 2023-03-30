@@ -114,6 +114,4 @@ class ChangeOfBasis:
         ).reshape(original_shape)
         inner_tensor = inner_tensor.permute(2, 0, 1)
         tensor[0, 0] = inner_tensor
-        if return_basis:
-            return tensor, cob_matrix.transpose(0, 1)
-        return tensor
+        return (tensor, cob_matrix.transpose(0, 1)) if return_basis else tensor
